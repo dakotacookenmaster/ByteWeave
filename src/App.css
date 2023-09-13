@@ -1,0 +1,11 @@
+.input-output {
+    border-radius: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: white;
+    width: 10px;
+    height: 10px;
+    color: black;
+}
