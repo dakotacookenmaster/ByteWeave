@@ -1,16 +1,20 @@
 export interface Gate {
     id: number
-    output: boolean
+    output?: boolean
     input0?: Gate
     input1?: Gate
+    inputs?: Gate[]
     imgSrc: string
-    dependency?: Gate
+    dependencies: Gate[]
     decide(): void
 }
 
+export interface Labeled {
+    label: string
+}
+
 class TwoInputGate {
-    output: boolean = false
-    dependency?: Gate
+    dependencies: Gate[] = []
     constructor(
         public imgSrc: string,
         public id: number,
@@ -20,74 +24,70 @@ class TwoInputGate {
 }
 
 class AndGate extends TwoInputGate implements Gate {
+    output: boolean = false
     decide() {
-        const oldOutput = this.output
         this.output = Boolean(this.input0?.output) && Boolean(this.input1?.output)
-        if(this.dependency && (this.output !== oldOutput)) {
-            this.dependency.decide()
-        }
     }
 }
 
 class OrGate extends TwoInputGate implements Gate {
+    output: boolean = false
     decide(): void {
-        const oldOutput = this.output
         this.output = Boolean(this.input0?.output) || Boolean(this.input1?.output)
-        if(this.dependency && (this.output !== oldOutput)) {
-            this.dependency.decide()
-        }
     } 
 }
 
 class NandGate extends TwoInputGate implements Gate {
+    output: boolean = true
     decide(): void {
-        const oldOutput = this.output
         this.output = !(Boolean(this.input0?.output) && Boolean(this.input1?.output))
-        if(this.dependency && (this.output !== oldOutput)) {
-            this.dependency.decide()
-        }
     }
 }
 
 class NorGate extends TwoInputGate implements Gate {
+    output: boolean = true
     decide(): void {
-        const oldOutput = this.output
         this.output = !(Boolean(this.input0?.output) || Boolean(this.input1?.output))
-        if(this.dependency && (this.output !== oldOutput)) {
-            this.dependency.decide()
-        }
     }
 }
 
 class NotGate implements Gate {
     output: boolean = true
-    dependency?: Gate
+    dependencies: Gate[] = []
     constructor(
         public imgSrc: string,
         public id: number,
         public input0?: Gate,
     ) {}
     decide(): void {
-        const oldOutput = this.output
         this.output = !Boolean(this.input0?.output)
-        if(this.dependency && (this.output !== oldOutput)) {
-            this.dependency.decide()
-        }
     }
 }
 
-class InputGate implements Gate {
+class InputGate implements Gate, Labeled {
     output: boolean = false
     constructor(
         public imgSrc: string,
-        public id: number
+        public id: number,
+        public label: string,
     ) {}
 
-    dependency?: Gate
+    dependencies: Gate[] = []
+    decide(): void {}
+}
+
+class OutputGate implements Gate, Labeled {
+    dependencies: Gate[] = []
+    inputs: Gate[] = []
+    output: boolean = false
+    constructor(
+        public imgSrc: string,
+        public id: number,
+        public label: string,
+    ) {}
+
     decide(): void {
-        if(this.dependency) {
-            this.dependency.decide()
-        }
+        this.output = this.inputs.some(input => Boolean(input.output))
     }
 }
 
@@ -97,5 +97,6 @@ export {
     NotGate,
     NandGate,
     NorGate,
-    InputGate
+    InputGate,
+    OutputGate
 }

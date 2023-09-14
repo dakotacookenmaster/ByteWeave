@@ -4,8 +4,17 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: white;
     width: 10px;
     height: 10px;
-    color: black;
+    border: 1px solid white;
+}
+
+.output-right {
+    transform: rotate(180deg);
+}
+
+.label {
+    text-align: center;
+    border-radius: 10px;
+    position: relative;
 }
