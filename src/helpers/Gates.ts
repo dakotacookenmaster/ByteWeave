@@ -49,10 +49,10 @@ class TwoInputGate {
         visited.push(this.id)
         this.decide()
         for (let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 2) {
-                return
+            if(countOccurrences(visited, dependency.id) > 1) {
+                throw new Error("Cycle detected while running autograder.")
             }
-            dependency.autoGrader(visited)
+            dependency.autoGrader([...visited])
         }
     }
 }
@@ -101,10 +101,10 @@ class NotGate implements Gate {
         visited.push(this.id)
         this.decide()
         for (let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 2) {
-                return
+            if(countOccurrences(visited, dependency.id) > 1) {
+                throw new Error("Cycle detected while running autograder.")
             }
-            dependency.autoGrader(visited)
+            dependency.autoGrader([...visited])
         }
     }
 }
@@ -124,10 +124,10 @@ class InputGate implements Gate, Labeled {
         visited.push(this.id)
         this.decide()
         for (let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 2) {
-                return
+            if(countOccurrences(visited, dependency.id) > 1) {
+                throw new Error("Cycle detected while running autograder.")
             }
-            dependency.autoGrader(visited)
+            dependency.autoGrader([...visited])
         }
     }
 }
@@ -150,10 +150,10 @@ class OutputGate implements Gate, Labeled {
         visited.push(this.id)
         this.decide()
         for(let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 2) {
-                return
+            if(countOccurrences(visited, dependency.id) > 1) {
+                throw new Error("Cycle detected while running autograder.")
             }
-            dependency.autoGrader(visited)
+            dependency.autoGrader([...visited])
         }
     }
 }

@@ -88,11 +88,21 @@ const PrimaryWindow = () => {
         // set all of the inputs to their appropriate values for testing
         originalOutput.push(inputs[j].output)
         inputs[j].output = Boolean(truthTable[i][0][j])
-        inputs[j].autoGrader([])
+        try {
+          inputs[j].autoGrader([])
+        } catch(error) {
+          enqueueSnackbar("Cycles are not currently supported for the autograder.", { variant: "warning" })
+          return
+        }
       }
       let failed = false
       for (let j = 0; j < outputs.length; j++) {
         if (Boolean(truthTable[i][1][j]) !== outputs[j].output) {
+          console.log("i:", i)
+          console.log("j", j)
+          console.log("truthtable[i][1][j]", truthTable[i][1][j])
+          console.log("outputs[j].output", outputs[j].output)
+          console.log("truthTable", truthTable)
           enqueueSnackbar("Hm, that's not quite right...", { variant: "error" })
           failed = true
           break
@@ -101,7 +111,12 @@ const PrimaryWindow = () => {
       // reset all the inputs from the autograder
       for (let j = 0; j < inputs.length; j++) {
         inputs[j].output = originalOutput[j]
-        inputs[j].autoGrader([])
+        try {
+          inputs[j].autoGrader([])
+        } catch(error) {
+          enqueueSnackbar("Cycles are not currently supported for the autograder.", { variant: "warning" })
+          return
+        }
       }
       if (failed) {
         return
