@@ -48,8 +48,6 @@ const PrimaryWindow = () => {
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
 
-  console.log(id)
-
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
