@@ -38,6 +38,10 @@ export default function HelpModal(props: { isOpen: boolean, setIsOpen: Function 
                         <Typography>Select a given gate</Typography>
                     </Box>
                     <Box className="help-box">
+                        <Typography sx={{ color: "primary.main", fontWeight: "bold" }} variant="overline" className="keyText">Double Click</Typography>
+                        <Typography>While another gate is selected, double click on a new gate to draw a connection.</Typography>
+                    </Box>
+                    <Box className="help-box">
                         <Typography sx={{ color: "primary.main", fontWeight: "bold" }} variant="overline" className="keyText">Delete</Typography>
                         <Typography>Remove the outgoing connections from the selected gate</Typography>
                     </Box>

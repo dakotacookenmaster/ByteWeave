@@ -171,9 +171,9 @@ const PrimaryWindow = () => {
         setSelected(prevSelected => {
           if (prevSelected.length === 1) {
             setGates(prevGates => {
-              const foundGate = prevGates.find(gate => gate.id === prevSelected[0])
+              const copyPrevGates = cloneDeep(prevGates)
+              const foundGate = copyPrevGates.find(gate => gate.id === prevSelected[0])
               if (foundGate instanceof InputGate) {
-                const copyPrevGates = cloneDeep(prevGates)
                 foundGate.output = !foundGate.output
                 return copyPrevGates
               }
