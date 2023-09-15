@@ -18,3 +18,9 @@
     border-radius: 10px;
     position: relative;
 }
+
+.help-box {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}

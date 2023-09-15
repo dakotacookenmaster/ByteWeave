@@ -26,6 +26,8 @@ import untypedData from "../data/assignment.json"
 import { Assignment } from "../data/Assignment.type"
 import BasicModal from './BasicModal';
 import { useSnackbar } from 'notistack';
+import HelpModal from './HelpModal';
+import HelpIcon from '@mui/icons-material/Help';
 
 const data: Assignment = untypedData
 
@@ -42,6 +44,7 @@ const PrimaryWindow = () => {
   const [outputLabel, setOutputLabel] = React.useState("A")
   const [activeStep, setActiveStep] = React.useState(0)
   const [isOpen, setIsOpen] = React.useState(true)
+  const [helpIsOpen, setHelpIsOpen] = React.useState(false)
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
 
@@ -74,33 +77,33 @@ const PrimaryWindow = () => {
       return a.id - b.id
     })
 
-    if(inputs.length !== truthTable[0][0].length || outputs.length !== truthTable[0][1].length) {
+    if (inputs.length !== truthTable[0][0].length || outputs.length !== truthTable[0][1].length) {
       // the user didn't provide the right number of inputs or outputs (idk how they'd change this, but it's good to check)
       return
     }
-    for(let i = 0; i < truthTable.length; i++) {
+    for (let i = 0; i < truthTable.length; i++) {
       // Test inputs first
       let originalOutput = []
-      for(let j = 0; j < inputs.length; j++) {
+      for (let j = 0; j < inputs.length; j++) {
         // set all of the inputs to their appropriate values for testing
         originalOutput.push(inputs[j].output)
         inputs[j].output = Boolean(truthTable[i][0][j])
         inputs[j].autoGrader([])
       }
       let failed = false
-      for(let j = 0; j < outputs.length; j++) {
-        if(Boolean(truthTable[i][1][j]) !== outputs[j].output) {
+      for (let j = 0; j < outputs.length; j++) {
+        if (Boolean(truthTable[i][1][j]) !== outputs[j].output) {
           enqueueSnackbar("Hm, that's not quite right...", { variant: "error" })
           failed = true
           break
         }
       }
       // reset all the inputs from the autograder
-      for(let j = 0; j < inputs.length; j++) {
+      for (let j = 0; j < inputs.length; j++) {
         inputs[j].output = originalOutput[j]
         inputs[j].autoGrader([])
       }
-      if(failed) {
+      if (failed) {
         return
       }
     }
@@ -221,7 +224,7 @@ const PrimaryWindow = () => {
               })
             }
 
-            if(gate instanceof InputGate) {
+            if (gate instanceof InputGate) {
               return copyPrevGates
             }
 
@@ -310,7 +313,7 @@ const PrimaryWindow = () => {
       return newGates
     })
     setIsOpen(true)
-    document.title = `${ data.assignmentName } | ${ data.questions[activeStep].instructions.title }`
+    document.title = `${data.assignmentName} | ${data.questions[activeStep].instructions.title}`
   }, [activeStep])
 
   const handleDrag = () => {
@@ -445,7 +448,7 @@ const PrimaryWindow = () => {
         )}
 
       </List>
-      <Toolbar sx={{ position: "fixed", display: "flex", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: theme.palette.background.paper }}>
+      <Toolbar sx={{ position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: theme.palette.background.paper }}>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
           Designed by Dakota Cookenmaster
         </Typography>
@@ -467,6 +470,7 @@ const PrimaryWindow = () => {
       }}
     >
       <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
+      <HelpModal isOpen={helpIsOpen} setIsOpen={setHelpIsOpen} />
       <Box sx={{ display: 'flex', width: "100vw" }}>
         <CssBaseline />
         <AppBar
@@ -489,9 +493,12 @@ const PrimaryWindow = () => {
             <Typography variant="h6" noWrap component="div">
               {data.assignmentName}
             </Typography>
-            <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto"}}>
-            <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
-            <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
+            <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
+              <IconButton onClick={() => setHelpIsOpen(true)}>
+                <HelpIcon color={"primary"} />
+              </IconButton>
+              <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
+              <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
             </Box>
           </Toolbar>
         </AppBar>
