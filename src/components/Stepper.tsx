@@ -16,7 +16,7 @@ const Stepper = (props: { drawerWidth: number, setActiveStep: Function, activeSt
 
   const handleNext = () => {
     setActiveStep((prevActiveStep: number) => prevActiveStep + 1);
-    setCanMove(true)
+    setCanMove(false)
   };
 
   return (
