@@ -18,22 +18,18 @@ import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
 import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate } from '../helpers/Gates';
-import { Paper } from '@mui/material';
-import { Gate } from '../helpers/Gates';
-import { cloneDeep, repeat } from 'lodash';
+import { Button, Paper } from '@mui/material';
+import { Gate, GateType } from '../helpers/Gates';
+import { cloneDeep } from 'lodash';
 import nextChar from '../helpers/NextLetter';
+import untypedData from "../data/assignment.json"
+import { Assignment } from "../data/Assignment.type"
+import BasicModal from './BasicModal';
+import { useSnackbar } from 'notistack';
+
+const data: Assignment = untypedData
 
 const drawerWidth = 240;
-
-enum GateType {
-  AND,
-  OR,
-  NOT,
-  NAND,
-  NOR,
-  INPUT,
-  OUTPUT
-}
 
 const PrimaryWindow = () => {
   const theme = useTheme()
@@ -44,6 +40,10 @@ const PrimaryWindow = () => {
   const [id, setId] = React.useState(0)
   const [inputLabel, setInputLabel] = React.useState("A")
   const [outputLabel, setOutputLabel] = React.useState("A")
+  const [activeStep, setActiveStep] = React.useState(0)
+  const [isOpen, setIsOpen] = React.useState(true)
+  const [canMove, setCanMove] = React.useState(false)
+  const { enqueueSnackbar } = useSnackbar()
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -53,7 +53,7 @@ const PrimaryWindow = () => {
     const intervalId = setInterval(() => {
       setGates(prevGates => {
         const copyPrevGates = cloneDeep(prevGates)
-        for(let gate of copyPrevGates) {
+        for (let gate of copyPrevGates) {
           gate.decide()
         }
         return copyPrevGates
@@ -65,12 +65,61 @@ const PrimaryWindow = () => {
     }
   }, [])
 
+  const checkAnswer = () => {
+    const truthTable = data.questions[activeStep].answer.truthTable
+    const inputs = gates.filter(gate => gate instanceof InputGate).sort((a, b) => {
+      return a.id - b.id
+    })
+    const outputs = gates.filter(gate => gate instanceof OutputGate).sort((a, b) => {
+      return a.id - b.id
+    })
+
+    if(inputs.length !== truthTable[0][0].length || outputs.length !== truthTable[0][1].length) {
+      // the user didn't provide the right number of inputs or outputs (idk how they'd change this, but it's good to check)
+      return
+    }
+    for(let i = 0; i < truthTable.length; i++) {
+      // Test inputs first
+      let originalOutput = []
+      for(let j = 0; j < inputs.length; j++) {
+        // set all of the inputs to their appropriate values for testing
+        originalOutput.push(inputs[j].output)
+        inputs[j].output = Boolean(truthTable[i][0][j])
+        inputs[j].autoGrader([])
+      }
+      let failed = false
+      for(let j = 0; j < outputs.length; j++) {
+        if(Boolean(truthTable[i][1][j]) !== outputs[j].output) {
+          enqueueSnackbar("Hm, that's not quite right...", { variant: "error" })
+          failed = true
+          break
+        }
+      }
+      // reset all the inputs from the autograder
+      for(let j = 0; j < inputs.length; j++) {
+        inputs[j].output = originalOutput[j]
+        inputs[j].autoGrader([])
+      }
+      if(failed) {
+        return
+      }
+    }
+
+    // otherwise they made it!
+    enqueueSnackbar("You got it!", { variant: "success" })
+    setCanMove(true)
+  }
+
+  const checkGatesInQuestion = (gate: ("AND" | "OR" | "NOT" | "NAND" | "NOR" | "INPUT" | "OUTPUT")): boolean => {
+    return data.gatesProvidedInEveryQuestion.includes(gate) || data.questions[activeStep].gatesProvided.includes(gate)
+  }
+
   const updateLabel = (type: "input" | "output") => {
     const setter = (prevLabel: string) => {
       return nextChar(prevLabel)
     }
 
-    if(type === "input") {
+    if (type === "input") {
       setInputLabel(setter)
     } else {
       setOutputLabel(setter)
@@ -94,17 +143,12 @@ const PrimaryWindow = () => {
               if (!gate) {
                 return prevGates
               }
-              if (gate instanceof OutputGate) {
-                return prevGates
-              }
               gate.dependencies = gate.dependencies.filter(dependency => {
-                if (dependency.input0?.id === prevSelected[0]) {
+                if (dependency.input0?.id === gate.id) {
                   dependency.input0 = undefined
-                  // dependency.decide()
                 } else {
-                  if (!(dependency instanceof NotGate)) {
+                  if (!(dependency instanceof NotGate || dependency instanceof OutputGate)) {
                     dependency.input1 = undefined
-                    // dependency.decide()
                   }
                 }
                 return false
@@ -128,7 +172,6 @@ const PrimaryWindow = () => {
               if (foundGate instanceof InputGate) {
                 const copyPrevGates = cloneDeep(prevGates)
                 foundGate.output = !foundGate.output
-                // foundGate.decide()
                 return copyPrevGates
               }
 
@@ -152,12 +195,9 @@ const PrimaryWindow = () => {
             }
 
             if (gate instanceof OutputGate) {
-              for (let input of gate.inputs) {
-                input.dependencies = input.dependencies.filter(dependency => dependency.id !== gate.id)
-              }
-
-              return prevGates.filter(g => g.id !== gate.id)
+              return prevGates
             }
+
 
             gate.dependencies = gate.dependencies.filter((dependency) => {
               if (dependency.input0?.id === gate.id) {
@@ -166,7 +206,6 @@ const PrimaryWindow = () => {
               if (dependency.input1?.id === gate.id) {
                 dependency.input1 = undefined
               }
-              // dependency.decide()
 
               return false
             })
@@ -177,13 +216,18 @@ const PrimaryWindow = () => {
               })
             }
             if (gate.input1) {
-              gate.input1.dependencies.filter(dependency => {
+              gate.input1.dependencies = gate.input1.dependencies.filter(dependency => {
                 return dependency.id !== gate.id
               })
             }
 
+            if(gate instanceof InputGate) {
+              return copyPrevGates
+            }
+
             return copyPrevGates.filter(g => g.id !== gate.id)
           })
+
           return []
         })
       }
@@ -243,6 +287,32 @@ const PrimaryWindow = () => {
     })
   }
 
+  React.useEffect(() => {
+    setGates(_ => {
+      let newId = 0
+      let newLabel = "A"
+      const newGates = []
+      const question = data.questions[activeStep]
+      for (let i = 0; i < question.inputCount; i++) {
+        const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", newId, `IN: ${newLabel}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
+        newGates.push(newGate)
+        newId++
+        newLabel = nextChar(newLabel)
+      }
+      for (let i = 0; i < question.outputCount; i++) {
+        const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", newId, `OUT: ${newLabel}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
+        newGates.push(newGate)
+        newId++
+        newLabel = nextChar(newLabel)
+      }
+      setId(newId)
+      setInputLabel(newLabel)
+      return newGates
+    })
+    setIsOpen(true)
+    document.title = `${ data.assignmentName } | ${ data.questions[activeStep].instructions.title }`
+  }, [activeStep])
+
   const handleDrag = () => {
     (archerContainerRef as any).current?.refreshScreen()
   }
@@ -262,26 +332,7 @@ const PrimaryWindow = () => {
           return prevGates
         }
 
-        if (receivingGate instanceof OutputGate) {
-          const existingGate = receivingGate.inputs.find(g => g.id === inputtingGate.id)
-          if (!existingGate) {
-            receivingGate.inputs.push(inputtingGate)
-            inputtingGate.dependencies.push(receivingGate)
-            // receivingGate.decide()
-          }
-          return copyPrevGates
-        }
-
-        if (
-          inputtingGate.id === receivingGate.input0?.id ||
-          inputtingGate.id === receivingGate.input1?.id ||
-          inputtingGate.input0?.id === receivingGate.id ||
-          inputtingGate.input1?.id === receivingGate.id
-        ) {
-          return prevGates
-        }
-
-        if (receivingGate.input0 && receivingGate instanceof NotGate) {
+        if ((receivingGate.input0 && receivingGate instanceof NotGate) || (receivingGate.input0 && receivingGate instanceof OutputGate)) {
           return prevGates
         }
         if (receivingGate.input0 && receivingGate.input1) {
@@ -292,11 +343,9 @@ const PrimaryWindow = () => {
 
         if (!receivingGate.input0) {
           receivingGate.input0 = inputtingGate
-          // receivingGate.decide()
           return copyPrevGates
         } else {
           receivingGate.input1 = inputtingGate
-          // receivingGate.decide()
           return copyPrevGates
         }
       })
@@ -324,62 +373,77 @@ const PrimaryWindow = () => {
       </Toolbar>
       <Divider />
       <List sx={{ marginBottom: "50px" }}>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.AND)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-and.png" alt="logic-gates-and" />
-            </ListItemIcon>
-            <ListItemText primary={"AND"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.OR)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-or.png" alt="logic-gates-or" />
-            </ListItemIcon>
-            <ListItemText primary={"OR"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.NOT)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-not.png" alt="logic-gates-not" />
-            </ListItemIcon>
-            <ListItemText primary={"NOT"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.NAND)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nand.png" alt="logic-gates-nand" />
-            </ListItemIcon>
-            <ListItemText primary={"NAND"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.NOR)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nor.png" alt="logic-gates-nor" />
-            </ListItemIcon>
-            <ListItemText primary={"NOR"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.INPUT)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" height="50px" src="https://img.icons8.com/nolan/96/login-rounded-right.png" alt="login-rounded-right" />
-            </ListItemIcon>
-            <ListItemText primary={"INPUT"} />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding onClick={() => handleAddGate(GateType.OUTPUT)}>
-          <ListItemButton>
-            <ListItemIcon>
-              <img width="50px" className="output-right" height="50px" src="https://img.icons8.com/nolan/96/logout-rounded-left.png" alt="logout-rounded" />
-            </ListItemIcon>
-            <ListItemText primary={"OUTPUT"} />
-          </ListItemButton>
-        </ListItem>
+        {checkGatesInQuestion("AND") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.AND)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-and.png" alt="logic-gates-and" />
+              </ListItemIcon>
+              <ListItemText primary={"AND"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {checkGatesInQuestion("OR") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.OR)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-or.png" alt="logic-gates-or" />
+              </ListItemIcon>
+              <ListItemText primary={"OR"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {checkGatesInQuestion("NOT") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.NOT)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-not.png" alt="logic-gates-not" />
+              </ListItemIcon>
+              <ListItemText primary={"NOT"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {checkGatesInQuestion("NAND") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.NAND)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nand.png" alt="logic-gates-nand" />
+              </ListItemIcon>
+              <ListItemText primary={"NAND"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {checkGatesInQuestion("NOR") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.NOR)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nor.png" alt="logic-gates-nor" />
+              </ListItemIcon>
+              <ListItemText primary={"NOR"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {checkGatesInQuestion("INPUT") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.INPUT)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" height="50px" src="https://img.icons8.com/nolan/96/login-rounded-right.png" alt="login-rounded-right" />
+              </ListItemIcon>
+              <ListItemText primary={"INPUT"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+        {checkGatesInQuestion("OUTPUT") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.OUTPUT)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50px" className="output-right" height="50px" src="https://img.icons8.com/nolan/96/logout-rounded-left.png" alt="logout-rounded" />
+              </ListItemIcon>
+              <ListItemText primary={"OUTPUT"} />
+            </ListItemButton>
+          </ListItem>
+        )}
+
       </List>
       <Toolbar sx={{ position: "fixed", display: "flex", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: theme.palette.background.paper }}>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
@@ -402,6 +466,7 @@ const PrimaryWindow = () => {
         }
       }}
     >
+      <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
       <Box sx={{ display: 'flex', width: "100vw" }}>
         <CssBaseline />
         <AppBar
@@ -422,8 +487,12 @@ const PrimaryWindow = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap component="div">
-              CPTR-108: Lab 5 - Digital Logic Simulator
+              {data.assignmentName}
             </Typography>
+            <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto"}}>
+            <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
+            <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
+            </Box>
           </Toolbar>
         </AppBar>
         <Box
@@ -464,11 +533,14 @@ const PrimaryWindow = () => {
             [theme.breakpoints.down("sm")]: {
               width: `calc(100% - 20px)`
             },
-            width: `calc(100% - ${drawerWidth}px - 65px)`,
+            width: `calc(100% - ${drawerWidth}px - 25px)`,
             height: "calc(100vh - 64px - 48px - 60px)",
+            overflow: "auto",
             position: "relative",
-            marginLeft: "30px",
-            marginTop: "50px",
+            marginLeft: "5px",
+            marginTop: "0px",
+            paddingTop: "40px",
+            paddingLeft: "40px"
           }}
         >
           {
@@ -481,7 +553,10 @@ const PrimaryWindow = () => {
                   bounds="parent"
                   key={`gate-${gate.id}`}
                   handle=".handle"
-                  defaultPosition={{ x: 0, y: 0 }}
+                  defaultPosition={{
+                    x: gate.defaultPlacement[0],
+                    y: gate.defaultPlacement[1],
+                  }}
                   grid={[1, 1]}
                   scale={1}
                   onDrag={handleDrag}
@@ -494,7 +569,7 @@ const PrimaryWindow = () => {
                     sx={{
                       width: "80px",
                       height: "80px",
-                      border: `1px solid ${selected.includes(gate.id) ? "green" : theme.palette.primary.main}`,
+                      border: `solid ${selected.includes(gate.id) ? "3px green" : `1px ${theme.palette.primary.main}`}`,
                       borderRadius: "5px",
                       position: "absolute",
                       "&:hover": {
@@ -607,7 +682,7 @@ const PrimaryWindow = () => {
                 </Draggable>
               )
             })}
-          <Stepper drawerWidth={drawerWidth} />
+          <Stepper drawerWidth={drawerWidth} canMove={canMove} setCanMove={setCanMove} activeStep={activeStep} setActiveStep={setActiveStep} />
         </Box>
       </Box>
     </ArcherContainer>

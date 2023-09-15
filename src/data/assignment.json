@@ -1,0 +1,72 @@
+{
+    "assignmentName": "CPTR-108 Lab 5: Digital Logic Simulator",
+    "canSkipAnyQuestion": true,
+    "gatesProvidedInEveryQuestion": [
+        "AND",
+        "OR",
+        "NOT"
+    ],
+    "questions": [
+        {
+            "instructions": {
+                "title": "XOR Gate Creation Challenge",
+                "description": "In this digital logic assignment, students will delve into the world of XOR gates aiming to create one using only two input gates, one output gate, and a combination of AND, OR, and NOT gates. XOR gates are fundamental in digital circuits, with a unique behavior: they produce a 'true' (1) output when there's an odd number of 'true' inputs, making them essential for various applications like data encryption and error checking. \n\n Your task is to design and construct a working XOR gate circuit, demonstrating your understanding of how logic gates interact to achieve this specific function. For example, if the inputs A and B are 1 and 0, respectively, the XOR gate should produce an output of 1. Likewise, if A is 0 and B is 1, the output should still be 1. However, if both inputs A and B are either 0 or 1, the output should be 0. Through this assignment, you'll not only learn about XOR gates but also hone your digital circuit design skills, with practical hands-on experience in creating, testing, and troubleshooting logic circuits.",
+                "resources": [
+                    {
+                        "title": "XOR Truth Table",
+                        "link": "https://storage.googleapis.com/dycr-web/image/topic/logic-gate/xor-xnor/xor-table.png"
+                    }
+                ]
+            },
+            "gatesProvided": [],
+            "canSkip": false,
+            "inputCount": 2,
+            "outputCount": 1,
+            "answer": {
+                "inputs": [
+                    {
+                        "defaultXPosition": 0,
+                        "defaultYPosition": 100
+                    },
+                    {
+                        "defaultXPosition": 0,
+                        "defaultYPosition": 230
+                    }
+                ],
+                "outputs": [
+                    {
+                        "defaultXPosition": 400,
+                        "defaultYPosition": 130
+                    }
+                ],
+                "truthTable": [
+                    [[0, 0], [0]],
+                    [[0, 1], [1]],
+                    [[1, 0], [1]],
+                    [[1, 1], [0]]
+                ]
+            }
+        },
+        {
+            "instructions": {
+                "title": "You Finished!",
+                "description": "Yay! You managed to finish! Show this to the lab instructor or TA to get checked off.",
+                "resources": []
+            },
+            "gatesProvided": [],
+            "canSkip": false,
+            "inputCount": 0,
+            "outputCount": 0,
+            "answer": {
+                "inputs": [],
+                "outputs": [],
+                "truthTable": [
+                    [[], []],
+                    [[], []],
+                    [[], []],
+                    [[], []]
+                ]
+            }
+        }
+    ]
+}
