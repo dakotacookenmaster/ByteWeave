@@ -5,10 +5,8 @@ import "../App.css"
 
 const style = {
     margin: "0 auto",
-    maxWidth: "600px",
-    width: "100%",
-    marginTop: "140px",
-    height: "250px",
+    width: "70vw",
+    marginTop: "10vh",
     overflow: "auto",
     bgcolor: 'background.paper',
     border: '2px solid #000',

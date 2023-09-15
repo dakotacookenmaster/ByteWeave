@@ -6,10 +6,8 @@ import { Button } from '@mui/material';
 
 const style = {
     margin: "0 auto",
-    maxWidth: "600px",
-    width: "100%",
-    marginTop: "40px",
-    height: "80vh",
+    width: "70vw",
+    marginTop: "10vh",
     overflow: "auto",
     bgcolor: 'background.paper',
     border: '2px solid #000',
