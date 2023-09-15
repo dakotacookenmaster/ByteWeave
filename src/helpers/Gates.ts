@@ -42,7 +42,7 @@ class TwoInputGate {
     constructor(
         public imgSrc: string,
         public id: number,
-        public defaultPlacement: [number, number] = [300, 300]
+        public defaultPlacement: [number, number] = [0, 0]
     ) { }
     decide(): void { }
     autoGrader(visited: number[]): void {
@@ -92,7 +92,7 @@ class NotGate implements Gate {
     constructor(
         public imgSrc: string,
         public id: number,
-        public defaultPlacement: [number, number] = [300, 300]
+        public defaultPlacement: [number, number] = [0, 0]
     ) { }
     decide(): void {
         this.output = !Boolean(this.input0?.output)
@@ -115,7 +115,7 @@ class InputGate implements Gate, Labeled {
         public imgSrc: string,
         public id: number,
         public label: string,
-        public defaultPlacement: [number, number] = [300, 300]
+        public defaultPlacement: [number, number] = [0, 0]
     ) { }
 
     dependencies: Gate[] = []
@@ -140,7 +140,7 @@ class OutputGate implements Gate, Labeled {
         public imgSrc: string,
         public id: number,
         public label: string,
-        public defaultPlacement: [number, number] = [300, 300]
+        public defaultPlacement: [number, number] = [0, 0]
     ) { }
 
     decide(): void {

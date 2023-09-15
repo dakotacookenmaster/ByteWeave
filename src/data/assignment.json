@@ -20,8 +20,6 @@
             },
             "gatesProvided": [],
             "canSkip": false,
-            "inputCount": 2,
-            "outputCount": 1,
             "answer": {
                 "inputs": [
                     {
@@ -49,14 +47,58 @@
         },
         {
             "instructions": {
+                "title": "Even Parity Circuit Creation Challenge",
+                "description": "In this digital logic assignment, students will dive into the world of even parity circuits, with the goal of creating one using three input gates, one output gate, and a combination of AND, OR, and NOT gates. Even parity circuits are crucial in digital systems, designed to produce a 'false' (0) output when there's an even number of 'true' inputs, providing robust error-checking capabilities. \n\n Your task is to design and construct a functional even parity circuit, showcasing your comprehension of how logic gates collaborate to achieve this specific function. For instance, if the inputs A, B, and C are 1, 0, and 1, respectively, the even parity circuit should yield an output of 0 since there are two 'true' inputs. Conversely, if A, B, and C are all 1, the output should be 1, as there's an odd number of 'true' inputs. Through this assignment, you'll not only learn about even parity circuits but also refine your digital circuit design skills, gaining hands-on experience in creating, testing, and troubleshooting logical circuits.",
+                "resources": [
+                    {
+                        "title": "Even Parity Truth Table",
+                        "link": "https://www.coursehero.com/qa/attachment/32173410/"
+                    }
+                ]
+            },
+            "gatesProvided": [],
+            "canSkip": false,
+            "answer": {
+                "inputs": [
+                    {
+                        "defaultXPosition": 0,
+                        "defaultYPosition": 100
+                    },
+                    {
+                        "defaultXPosition": 0,
+                        "defaultYPosition": 230
+                    },
+                    {
+                        "defaultXPosition": 0,
+                        "defaultYPosition": 360
+                    }
+                ],
+                "outputs": [
+                    {
+                        "defaultXPosition": 400,
+                        "defaultYPosition": 230
+                    }
+                ],
+                "truthTable": [
+                    [[0, 0, 0], [0]],
+                    [[0, 0, 1], [1]],
+                    [[0, 1, 0], [1]],
+                    [[0, 1, 1], [0]],
+                    [[1, 0, 0], [1]],
+                    [[1, 0, 1], [0]],
+                    [[1, 1, 0], [0]],
+                    [[1, 1, 1], [1]]
+                ]
+            }
+        },
+        {
+            "instructions": {
                 "title": "You Finished!",
                 "description": "Yay! You managed to finish! Show this to the lab instructor or TA to get checked off.",
                 "resources": []
             },
             "gatesProvided": [],
             "canSkip": false,
-            "inputCount": 0,
-            "outputCount": 0,
             "answer": {
                 "inputs": [],
                 "outputs": [],

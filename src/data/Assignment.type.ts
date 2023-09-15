@@ -13,8 +13,6 @@ export type Assignment = {
         },
         gatesProvided: string[],
         canSkip: boolean,
-        inputCount: number,
-        outputCount: number,
         answer: {
             inputs: {
                 defaultXPosition: number,

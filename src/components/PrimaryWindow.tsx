@@ -48,6 +48,8 @@ const PrimaryWindow = () => {
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
 
+  console.log(id)
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -292,17 +294,17 @@ const PrimaryWindow = () => {
 
   React.useEffect(() => {
     setGates(_ => {
-      let newId = 0
+      let newId = id
       let newLabel = "A"
       const newGates = []
       const question = data.questions[activeStep]
-      for (let i = 0; i < question.inputCount; i++) {
+      for (let i = 0; i < question.answer.inputs.length; i++) {
         const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", newId, `IN: ${newLabel}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
         newGates.push(newGate)
         newId++
         newLabel = nextChar(newLabel)
       }
-      for (let i = 0; i < question.outputCount; i++) {
+      for (let i = 0; i < question.answer.outputs.length; i++) {
         const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", newId, `OUT: ${newLabel}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
         newGates.push(newGate)
         newId++
