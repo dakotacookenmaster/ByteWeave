@@ -472,7 +472,7 @@ const PrimaryWindow = () => {
         )}
 
       </List>
-      <Toolbar sx={{ position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: theme.palette.background.paper }}>
+      <Toolbar sx={{ position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
           Designed by Dakota Cookenmaster
         </Typography>
