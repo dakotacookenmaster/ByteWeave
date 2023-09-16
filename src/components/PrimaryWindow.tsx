@@ -26,8 +26,6 @@ import untypedData from "../data/assignment.json"
 import { Assignment } from "../data/Assignment.type"
 import BasicModal from './BasicModal';
 import { useSnackbar } from 'notistack';
-import HelpModal from './HelpModal';
-import HelpIcon from '@mui/icons-material/Help';
 import RightClickContext from './RightClickContext';
 import { green } from '@mui/material/colors';
 import { VERSION } from '../constants';
@@ -47,7 +45,6 @@ const PrimaryWindow = () => {
   const [outputLabel, setOutputLabel] = React.useState("A")
   const [activeStep, setActiveStep] = React.useState(0)
   const [isOpen, setIsOpen] = React.useState(true)
-  const [helpIsOpen, setHelpIsOpen] = React.useState(false)
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
   const [anchorElement, setAnchorElement] = React.useState<HTMLElement | null>(null)
@@ -464,7 +461,6 @@ const PrimaryWindow = () => {
       }}
     >
       <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
-      <HelpModal isOpen={helpIsOpen} setIsOpen={setHelpIsOpen} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         id={rightClickContextGate.id}
         beginLinking={() => {
@@ -506,9 +502,6 @@ const PrimaryWindow = () => {
               {data.assignmentName}
             </Typography>
             <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
-              <IconButton onClick={() => setHelpIsOpen(true)}>
-                <HelpIcon color={"primary"} />
-              </IconButton>
               <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
               <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
             </Box>
