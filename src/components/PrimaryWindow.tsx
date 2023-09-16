@@ -17,10 +17,10 @@ import Stepper from './Stepper';
 import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
-import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate } from '../helpers/Gates';
+import { AndGate, InputGate, Labeled, NandGate, NorGate, NotGate, OrGate, OutputGate } from '../helpers/Gates';
 import { Button, Paper } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import nextChar from '../helpers/NextLetter';
 import untypedData from "../data/assignment.json"
 import { Assignment } from "../data/Assignment.type"
@@ -28,6 +28,9 @@ import BasicModal from './BasicModal';
 import { useSnackbar } from 'notistack';
 import HelpModal from './HelpModal';
 import HelpIcon from '@mui/icons-material/Help';
+import RightClickContext from './RightClickContext';
+import { green } from '@mui/material/colors';
+import { VERSION } from '../constants';
 
 const data: Assignment = untypedData
 
@@ -37,7 +40,7 @@ const PrimaryWindow = () => {
   const theme = useTheme()
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [gates, setGates] = React.useState([] as Gate[])
-  const [selected, setSelected] = React.useState([] as number[])
+  const [selected, setSelected] = React.useState<number>(-1)
   const archerContainerRef = React.useRef(null)
   const [id, setId] = React.useState(0)
   const [inputLabel, setInputLabel] = React.useState("A")
@@ -47,10 +50,24 @@ const PrimaryWindow = () => {
   const [helpIsOpen, setHelpIsOpen] = React.useState(false)
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
+  const [anchorElement, setAnchorElement] = React.useState<HTMLElement | null>(null)
+  const [rightClickContextGate, setRightClickContextGate] = React.useState({
+    id: -1,
+    type: GateType.INPUT,
+    output: false,
+  })
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  React.useEffect(() => {
+    if(selected !== -1) {
+      document.body.style.cursor = "crosshair"
+    } else {
+      document.body.style.cursor = "default"
+    }
+  }, [selected])
 
   React.useEffect(() => {
     const intervalId = setInterval(() => {
@@ -58,6 +75,9 @@ const PrimaryWindow = () => {
         const copyPrevGates = cloneDeep(prevGates)
         for (let gate of copyPrevGates) {
           gate.decide()
+        }
+        if (isEqual(prevGates, copyPrevGates)) {
+          return prevGates
         }
         return copyPrevGates
       })
@@ -70,10 +90,10 @@ const PrimaryWindow = () => {
 
   const checkAnswer = () => {
     const truthTable = data.questions[activeStep].answer.truthTable
-    const inputs = gates.filter(gate => gate instanceof InputGate).sort((a, b) => {
+    const inputs = gates.filter(gate => gate.type === GateType.INPUT).sort((a, b) => {
       return a.id - b.id
     })
-    const outputs = gates.filter(gate => gate instanceof OutputGate).sort((a, b) => {
+    const outputs = gates.filter(gate => gate.type === GateType.OUTPUT).sort((a, b) => {
       return a.id - b.id
     })
 
@@ -90,7 +110,7 @@ const PrimaryWindow = () => {
         inputs[j].output = Boolean(truthTable[i][0][j])
         try {
           inputs[j].autoGrader([])
-        } catch(error) {
+        } catch (error) {
           enqueueSnackbar("Cycles are not currently supported for the autograder.", { variant: "warning" })
           return
         }
@@ -98,11 +118,6 @@ const PrimaryWindow = () => {
       let failed = false
       for (let j = 0; j < outputs.length; j++) {
         if (Boolean(truthTable[i][1][j]) !== outputs[j].output) {
-          console.log("i:", i)
-          console.log("j", j)
-          console.log("truthtable[i][1][j]", truthTable[i][1][j])
-          console.log("outputs[j].output", outputs[j].output)
-          console.log("truthTable", truthTable)
           enqueueSnackbar("Hm, that's not quite right...", { variant: "error" })
           failed = true
           break
@@ -113,7 +128,7 @@ const PrimaryWindow = () => {
         inputs[j].output = originalOutput[j]
         try {
           inputs[j].autoGrader([])
-        } catch(error) {
+        } catch (error) {
           enqueueSnackbar("Cycles are not currently supported for the autograder.", { variant: "warning" })
           return
         }
@@ -144,125 +159,97 @@ const PrimaryWindow = () => {
     }
   }
 
-  React.useEffect(() => {
-    const escapeListener = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setSelected([])
+  const resetCurrentGate = () => {
+    setRightClickContextGate({
+      id: -1,
+      type: GateType.INPUT,
+      output: false
+    })
+  }
+
+  const removeOutgoingConnections = (id: number) => {
+    setGates(prevGates => {
+      const copyPrevGates = cloneDeep(prevGates)
+      const gate = copyPrevGates.find(gate => gate.id === id)
+      if (!gate) {
+        return prevGates
       }
-    }
-
-    const deleteListener = (event: KeyboardEvent) => {
-      if (event.key === "Delete" || event.key === "Backspace") {
-        setSelected(prevSelected => {
-          if (prevSelected.length === 1) {
-            setGates(prevGates => {
-              const copyPrevGates = cloneDeep(prevGates)
-              const gate = copyPrevGates.find(gate => gate.id === prevSelected[0])
-              if (!gate) {
-                return prevGates
-              }
-              gate.dependencies = gate.dependencies.filter(dependency => {
-                if (dependency.input0?.id === gate.id) {
-                  dependency.input0 = undefined
-                } else {
-                  if (!(dependency instanceof NotGate || dependency instanceof OutputGate)) {
-                    dependency.input1 = undefined
-                  }
-                }
-                return false
-              })
-
-              return copyPrevGates
-            })
+      gate.dependencies = gate.dependencies.filter(dependency => {
+        if (dependency.input0?.id === gate.id) {
+          dependency.input0 = undefined
+        } else {
+          if (![GateType.NOT, GateType.OUTPUT].includes(dependency.type)) {
+            dependency.input1 = undefined
           }
+        }
+        return false
+      })
 
-          return [] as number[]
+      return copyPrevGates
+    })
+    setAnchorElement(null)
+    resetCurrentGate()
+  }
+
+  const toggleInput = (id: number) => {
+    setGates(prevGates => {
+      const copyPrevGates = cloneDeep(prevGates)
+      const foundGate = copyPrevGates.find(gate => gate.id === id)
+      if (foundGate?.type === GateType.INPUT) {
+        foundGate.output = !foundGate.output
+        return copyPrevGates
+      }
+
+      return prevGates
+    })
+    setAnchorElement(null)
+    resetCurrentGate()
+  }
+
+  const removeGate = (id: number) => {
+    setGates(prevGates => {
+      const copyPrevGates = cloneDeep(prevGates)
+      const gate = copyPrevGates.find(g => g.id === id)
+      if (!gate) {
+        return prevGates
+      }
+
+      if (gate.type === GateType.OUTPUT) {
+        return prevGates
+      }
+
+
+      gate.dependencies = gate.dependencies.filter((dependency) => {
+        if (dependency.input0?.id === gate.id) {
+          dependency.input0 = undefined
+        }
+        if (dependency.input1?.id === gate.id) {
+          dependency.input1 = undefined
+        }
+
+        return false
+      })
+
+      if (gate.input0) {
+        gate.input0.dependencies = gate.input0.dependencies.filter(dependency => {
+          return dependency.id !== gate.id
         })
       }
-    }
-
-    const oListener = (event: KeyboardEvent) => {
-      if (event.key === "o") {
-        setSelected(prevSelected => {
-          if (prevSelected.length === 1) {
-            setGates(prevGates => {
-              const copyPrevGates = cloneDeep(prevGates)
-              const foundGate = copyPrevGates.find(gate => gate.id === prevSelected[0])
-              if (foundGate instanceof InputGate) {
-                foundGate.output = !foundGate.output
-                return copyPrevGates
-              }
-
-              return prevGates
-            })
-          }
-
-          return [] as number[]
+      if (gate.input1) {
+        gate.input1.dependencies = gate.input1.dependencies.filter(dependency => {
+          return dependency.id !== gate.id
         })
       }
-    }
 
-    const rListener = (event: KeyboardEvent) => {
-      if (event.key === "r") {
-        setSelected(prevSelected => {
-          setGates(prevGates => {
-            const copyPrevGates = cloneDeep(prevGates)
-            const gate = copyPrevGates.find(g => g.id === prevSelected[0])
-            if (!gate) {
-              return prevGates
-            }
-
-            if (gate instanceof OutputGate) {
-              return prevGates
-            }
-
-
-            gate.dependencies = gate.dependencies.filter((dependency) => {
-              if (dependency.input0?.id === gate.id) {
-                dependency.input0 = undefined
-              }
-              if (dependency.input1?.id === gate.id) {
-                dependency.input1 = undefined
-              }
-
-              return false
-            })
-
-            if (gate.input0) {
-              gate.input0.dependencies = gate.input0.dependencies.filter(dependency => {
-                return dependency.id !== gate.id
-              })
-            }
-            if (gate.input1) {
-              gate.input1.dependencies = gate.input1.dependencies.filter(dependency => {
-                return dependency.id !== gate.id
-              })
-            }
-
-            if (gate instanceof InputGate) {
-              return copyPrevGates
-            }
-
-            return copyPrevGates.filter(g => g.id !== gate.id)
-          })
-
-          return []
-        })
+      if (gate.type === GateType.INPUT) {
+        return copyPrevGates
       }
-    }
 
-    window.addEventListener("keydown", escapeListener)
-    window.addEventListener("keydown", deleteListener)
-    window.addEventListener("keydown", oListener)
-    window.addEventListener("keydown", rListener)
-
-    return () => {
-      window.removeEventListener("keydown", escapeListener)
-      window.removeEventListener("keydown", deleteListener)
-      window.removeEventListener("keydown", oListener)
-      window.removeEventListener("keydown", rListener)
-    }
-  }, [])
+      return copyPrevGates.filter(g => g.id !== gate.id)
+    })
+    setAnchorElement(null)
+    resetCurrentGate()
+  }
 
   const handleAddGate = (type: GateType) => {
     setGates(prevGates => {
@@ -335,12 +322,12 @@ const PrimaryWindow = () => {
     (archerContainerRef as any).current?.refreshScreen()
   }
 
-  React.useEffect(() => {
-    if (selected.length === 2) {
+  const handleConnect = (id: number) => {
+    if(selected !== -1) {
       setGates(prevGates => {
         const copyPrevGates = cloneDeep(prevGates)
-        const receivingGate = copyPrevGates.find(gate => gate.id === selected[1])
-        const inputtingGate = copyPrevGates.find(gate => gate.id === selected[0])
+        const receivingGate = copyPrevGates.find(gate => gate.id === id)
+        const inputtingGate = copyPrevGates.find(gate => gate.id === selected)
 
         if (!receivingGate || !inputtingGate) {
           return prevGates
@@ -367,21 +354,13 @@ const PrimaryWindow = () => {
           return copyPrevGates
         }
       })
-      setSelected([])
+      setSelected(-1)
     }
-  }, [selected])
+  }
 
-  const handleSelect = (id: number) => {
-    setSelected(prevSelected => {
-      const newData = [...prevSelected]
-      if (newData.includes(id)) {
-        const foundIndex = newData.findIndex(value => value === id)
-        newData.splice(foundIndex, 1)
-      } else {
-        newData.push(id)
-      }
-      return newData
-    })
+  const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault() // Stop the default right click context from appearing
+    setAnchorElement(event.currentTarget)
   }
 
   const drawer = (
@@ -468,7 +447,7 @@ const PrimaryWindow = () => {
           Designed by Dakota Cookenmaster
         </Typography>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
-          Icons by <a href="https://icons8.com">Icons8</a>
+          Version { VERSION } &#8226; Icons by <a href="https://icons8.com">Icons8</a>
         </Typography>
       </Toolbar>
     </div>
@@ -486,7 +465,25 @@ const PrimaryWindow = () => {
     >
       <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
       <HelpModal isOpen={helpIsOpen} setIsOpen={setHelpIsOpen} />
-      <Box sx={{ display: 'flex', width: "100vw" }}>
+      {rightClickContextGate.id !== -1 && (<RightClickContext
+        id={rightClickContextGate.id}
+        beginLinking={() => {
+          setAnchorElement(null)
+          setSelected(rightClickContextGate.id)
+        }}
+        output={Boolean(rightClickContextGate.output)}
+        type={rightClickContextGate.type}
+        toggleInput={() => toggleInput(rightClickContextGate.id)}
+        removeGate={() => removeGate(rightClickContextGate.id)}
+        removeOutgoingConnections={() => removeOutgoingConnections(rightClickContextGate.id)}
+        anchorElement={anchorElement}
+        handleClose={() => {
+          setAnchorElement(null)
+          resetCurrentGate()
+        }}
+      />
+      )}
+      <Box onClick={() => setSelected(-1)} sx={{ display: 'flex', width: "100vw" }}>
         <CssBaseline />
         <AppBar
           position="fixed"
@@ -587,15 +584,23 @@ const PrimaryWindow = () => {
                     className="handle"
                     ref={ref}
                     key={`box-${gate.id}`}
-                    onDoubleClick={() => handleSelect(gate.id)}
+                    onClick={() => handleConnect(gate.id)}
+                    onContextMenu={(event) => {
+                      setRightClickContextGate({
+                        id: gate.id,
+                        type: gate.type,
+                        output: Boolean(gate.output)
+                      })
+                      handleRightClick(event)
+                    }}
                     sx={{
                       width: "80px",
                       height: "80px",
-                      border: `solid ${selected.includes(gate.id) ? "3px green" : `1px ${theme.palette.primary.main}`}`,
+                      border: `solid ${selected === gate.id ? `3px ${green["A400"]}` : `1px ${theme.palette.primary.main}`}`,
                       borderRadius: "5px",
                       position: "absolute",
                       "&:hover": {
-                        cursor: "pointer"
+                        cursor: selected === -1 ? "pointer" : "crosshair"
                       },
                     }}
                   >
@@ -603,9 +608,9 @@ const PrimaryWindow = () => {
                       width: "100%",
                       height: "100%",
                       position: "relative",
-                      background: gate instanceof OutputGate ? "none" : `url("${gate.imgSrc}")`,
-                      backgroundSize: gate instanceof OutputGate ? "" : "cover",
-                    }} sx={(gate instanceof OutputGate) ? {
+                      background: gate.type === GateType.OUTPUT ? "none" : `url("${gate.imgSrc}")`,
+                      backgroundSize: gate.type === GateType.OUTPUT ? "" : "cover",
+                    }} sx={(gate.type === GateType.OUTPUT) ? {
                       "&::before": {
                         content: '""',
                         position: "absolute",
@@ -616,14 +621,14 @@ const PrimaryWindow = () => {
                         transform: "rotate(180deg)"
                       }
                     } : {}}>
-                      {!(gate instanceof InputGate) && !(gate instanceof OutputGate) && (
+                      {!(gate.type === GateType.INPUT) && !(gate.type === GateType.OUTPUT) && (
                         <ArcherElement
                           id={`gate-${gate.id}-input0`}
                         >
                           <div
                             style={{
                               position: "relative",
-                              top: gate instanceof NotGate ? "30px" : "15px",
+                              top: gate.type === GateType.NOT ? "30px" : "15px",
                               left: "-25px",
                               background: gate.input0?.output ? "green" : "red",
                             }}
@@ -632,7 +637,7 @@ const PrimaryWindow = () => {
                           </div>
                         </ArcherElement>
                       )}
-                      {(gate instanceof OutputGate) && (
+                      {(gate.type === GateType.OUTPUT) && (
                         <ArcherElement
                           id={`gate-${gate.id}-inputs`}
                         >
@@ -648,7 +653,7 @@ const PrimaryWindow = () => {
                           </div>
                         </ArcherElement>
                       )}
-                      {!(gate instanceof NotGate) && !(gate instanceof InputGate) && !(gate instanceof OutputGate) && (
+                      {![GateType.NOT, GateType.INPUT, GateType.OUTPUT].includes(gate.type) && (
                         <ArcherElement
                           id={`gate-${gate.id}-input1`}
                         >
@@ -668,7 +673,7 @@ const PrimaryWindow = () => {
                         id={`gate-${gate.id}-output`}
                         relations={gate.dependencies.map(dependency => {
                           return {
-                            targetId: dependency instanceof OutputGate ? `gate-${dependency.id}-inputs` : `gate-${dependency.id}-${dependency.input0?.id === gate.id ? "input0" : "input1"}`,
+                            targetId: dependency.type === GateType.OUTPUT ? `gate-${dependency.id}-inputs` : `gate-${dependency.id}-${dependency.input0?.id === gate.id ? "input0" : "input1"}`,
                             targetAnchor: 'left',
                             sourceAnchor: 'right',
                             style: {
@@ -681,7 +686,7 @@ const PrimaryWindow = () => {
                         <div
                           style={{
                             position: "relative",
-                            top: gate instanceof NotGate || gate instanceof OutputGate ? "7px" : gate instanceof InputGate ? "30px" : "-12px",
+                            top: [GateType.NOT, GateType.OUTPUT].includes(gate.type) ? "7px" : gate.type === GateType.INPUT ? "30px" : "-12px",
                             left: "85px",
                             background: gate.output ? "green" : "red",
                           }}
@@ -690,14 +695,14 @@ const PrimaryWindow = () => {
                           {gate.output ? "1" : "0"}
                         </div>
                       </ArcherElement>
-                      {(gate instanceof InputGate || gate instanceof OutputGate) && (
+                      {[GateType.INPUT, GateType.OUTPUT].includes(gate.type) && (
                         <Typography sx={{
                           background: theme.palette.primary.dark,
                           color: theme.palette.text.primary,
                           fontWeight: "bold",
                           display: "block",
-                          top: gate instanceof InputGate ? "-60px" : "-80px",
-                        }} variant="overline" className="label">{gate.label}</Typography>
+                          top: gate.type === GateType.INPUT ? "-60px" : "-80px",
+                        }} variant="overline" className="label">{(gate as unknown as Labeled).label}</Typography>
                       )}
                     </Paper>
                   </Box>

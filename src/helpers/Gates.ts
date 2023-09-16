@@ -1,5 +1,6 @@
 export interface Gate {
     id: number
+    type: GateType
     output?: boolean
     input0?: Gate
     input1?: Gate
@@ -59,6 +60,7 @@ class TwoInputGate {
 
 class AndGate extends TwoInputGate implements Gate {
     output: boolean = false
+    type = GateType.AND
     decide() {
         this.output = Boolean(this.input0?.output) && Boolean(this.input1?.output)
     }
@@ -66,6 +68,7 @@ class AndGate extends TwoInputGate implements Gate {
 
 class OrGate extends TwoInputGate implements Gate {
     output: boolean = false
+    type = GateType.OR
     decide(): void {
         this.output = Boolean(this.input0?.output) || Boolean(this.input1?.output)
     }
@@ -73,6 +76,7 @@ class OrGate extends TwoInputGate implements Gate {
 
 class NandGate extends TwoInputGate implements Gate {
     output: boolean = true
+    type = GateType.NAND
     decide(): void {
         this.output = !(Boolean(this.input0?.output) && Boolean(this.input1?.output))
     }
@@ -80,6 +84,7 @@ class NandGate extends TwoInputGate implements Gate {
 
 class NorGate extends TwoInputGate implements Gate {
     output: boolean = true
+    type = GateType.NOR
     decide(): void {
         this.output = !(Boolean(this.input0?.output) || Boolean(this.input1?.output))
     }
@@ -87,6 +92,7 @@ class NorGate extends TwoInputGate implements Gate {
 
 class NotGate implements Gate {
     output: boolean = true
+    type = GateType.NOT
     dependencies: Gate[] = []
     input0?: Gate
     constructor(
@@ -111,6 +117,7 @@ class NotGate implements Gate {
 
 class InputGate implements Gate, Labeled {
     output: boolean = false
+    type = GateType.INPUT
     constructor(
         public imgSrc: string,
         public id: number,
@@ -135,6 +142,7 @@ class InputGate implements Gate, Labeled {
 class OutputGate implements Gate, Labeled {
     dependencies: Gate[] = []
     output: boolean = false
+    type = GateType.OUTPUT
     input0?: Gate
     constructor(
         public imgSrc: string,
