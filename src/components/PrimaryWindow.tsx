@@ -753,7 +753,9 @@ const PrimaryWindow = () => {
                 </Draggable>
               )
             })}
-          <Stepper drawerWidth={drawerWidth} canMove={canMove} activeStep={activeStep} setActiveStep={setActiveStep} />
+          {data.questions.length > 1 && (
+            <Stepper drawerWidth={drawerWidth} canMove={canMove} activeStep={activeStep} setActiveStep={setActiveStep} />
+          )}
         </Box>
       </Box>
     </ArcherContainer>
