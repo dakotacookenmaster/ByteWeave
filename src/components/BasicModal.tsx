@@ -9,6 +9,7 @@ const style = {
     width: "70vw",
     marginTop: "10vh",
     overflow: "auto",
+    maxHeight: "80vh",
     bgcolor: 'background.paper',
     border: '2px solid #000',
     boxShadow: 24,
