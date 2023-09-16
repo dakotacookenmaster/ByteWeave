@@ -13,7 +13,7 @@ const theme = createTheme({
 const App = () => {
   return (
     <ThemeProvider theme={theme}>
-      <SnackbarProvider maxSnack={1} style={{ width: "500px" }} anchorOrigin={{ horizontal: "center", vertical: "top" }}>
+      <SnackbarProvider maxSnack={1} style={{ maxWidth: "500px", width: "100%" }} anchorOrigin={{ horizontal: "center", vertical: "top" }}>
         <PrimaryWindow />
       </SnackbarProvider>
     </ThemeProvider>
