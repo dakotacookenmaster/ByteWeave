@@ -106,30 +106,6 @@
                     [[], []]
                 ]
             }
-        },
-        {
-            "instructions": {
-                "title": "Free Roam",
-                "description": "Build whatever you want!",
-                "resources": []
-            },
-            "gatesProvided": [
-                "NAND",
-                "NOR",
-                "INPUT",
-                "OUTPUT"
-            ],
-            "canSkip": false,
-            "answer": {
-                "inputs": [],
-                "outputs": [],
-                "truthTable": [
-                    [[], []],
-                    [[], []],
-                    [[], []],
-                    [[], []]
-                ]
-            }
         }
     ]
 }
