@@ -11,8 +11,8 @@ import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import ToggleOffIcon from '@mui/icons-material/ToggleOff';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 
-export default function RightClickContext(props: { id: number, output: boolean, type: GateType, anchorElement: HTMLElement | null, handleClose: any, beginLinking: React.MouseEventHandler<HTMLElement>, removeGate: React.MouseEventHandler<HTMLElement>, removeOutgoingConnections: React.MouseEventHandler<HTMLElement>, toggleInput: React.MouseEventHandler<HTMLElement> }) {
-    const { handleClose, id, beginLinking, type, anchorElement, removeGate, removeOutgoingConnections, toggleInput, output } = props
+export default function RightClickContext(props: { inputLength: number, outputLength: number, id: number, output: boolean, type: GateType, anchorElement: HTMLElement | null, handleClose: any, beginLinking: React.MouseEventHandler<HTMLElement>, removeGate: React.MouseEventHandler<HTMLElement>, removeOutgoingConnections: React.MouseEventHandler<HTMLElement>, toggleInput: React.MouseEventHandler<HTMLElement> }) {
+    const { handleClose, id, inputLength, outputLength, beginLinking, type, anchorElement, removeGate, removeOutgoingConnections, toggleInput, output } = props
 
     const open = Boolean(anchorElement)
     return (
@@ -31,7 +31,7 @@ export default function RightClickContext(props: { id: number, output: boolean, 
                     <MenuList>
                         <MenuItem onClick={beginLinking}>
                             <ListItemIcon>
-                                <AddLinkIcon fontSize="small" />
+                                <AddLinkIcon color="success" fontSize="small" />
                             </ListItemIcon>
                             <ListItemText>Connect</ListItemText>
                         </MenuItem>
@@ -43,17 +43,17 @@ export default function RightClickContext(props: { id: number, output: boolean, 
                                 <ListItemText>{output ? "Toggle Off" : "Toggle On"}</ListItemText>
                             </MenuItem>
                         )}
-                        {![GateType.INPUT, GateType.OUTPUT].includes(type) && (
+                        {!((type === GateType.INPUT && inputLength !== 0) || (type == GateType.OUTPUT && outputLength !== 0)) && (
                             <MenuItem onClick={removeGate}>
                                 <ListItemIcon>
-                                    <DeleteOutlineIcon fontSize="small" />
+                                    <DeleteOutlineIcon color="error" fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText>Delete Gate</ListItemText>
                             </MenuItem>
                         )}
                         <MenuItem onClick={removeOutgoingConnections}>
                             <ListItemIcon>
-                                <LinkOffIcon fontSize="small" />
+                                <LinkOffIcon color="warning" fontSize="small" />
                             </ListItemIcon>
                             <ListItemText>Remove Output Links</ListItemText>
                         </MenuItem>

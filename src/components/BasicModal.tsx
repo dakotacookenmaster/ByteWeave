@@ -35,11 +35,15 @@ export default function BasicModal(props: { isOpen: boolean, setIsOpen: Function
                     <Typography id="modal-modal-description" sx={{ mt: 2, whiteSpace: "pre-wrap" }}>
                         {data.description}
                     </Typography>
-                    <br />
-                    <Typography variant="h6" sx={{marginBottom: "10px"}}>
-                        Provided Resources
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: "20px", flexWrap: "wrap"}}>
+                    {(data.resources.length !== 0) && (
+                        <>
+                            <br />
+                            <Typography variant="h6" sx={{ marginBottom: "10px" }}>
+                                Provided Resources
+                            </Typography>
+                        </>
+                    )}
+                    <Box sx={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
                         {
                             data.resources.map(resource => {
                                 return (

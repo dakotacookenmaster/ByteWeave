@@ -241,7 +241,7 @@ const PrimaryWindow = () => {
         return prevGates
       }
 
-      if (gate.type === GateType.OUTPUT) {
+      if (data.questions[activeStep].answer.outputs.length !== 0 && (gate.type === GateType.OUTPUT || gate.type === GateType.INPUT)) {
         return prevGates
       }
 
@@ -266,10 +266,6 @@ const PrimaryWindow = () => {
         gate.input1.dependencies = gate.input1.dependencies.filter(dependency => {
           return dependency.id !== gate.id
         })
-      }
-
-      if (gate.type === GateType.INPUT) {
-        return copyPrevGates
       }
 
       return copyPrevGates.filter(g => g.id !== gate.id)
@@ -343,6 +339,7 @@ const PrimaryWindow = () => {
     })
     setIsOpen(true)
     document.title = `${data.assignmentName} | ${data.questions[activeStep].instructions.title}`
+    setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
   }, [activeStep])
 
   const handleDrag = () => {
@@ -495,6 +492,8 @@ const PrimaryWindow = () => {
     >
       <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
+        inputLength={data.questions[activeStep].answer.inputs.length}
+        outputLength={data.questions[activeStep].answer.outputs.length}
         id={rightClickContextGate.id}
         beginLinking={() => {
           setAnchorElement(null)
@@ -546,7 +545,7 @@ const PrimaryWindow = () => {
                 </>
               ) : (
                 <>
-                  <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
+                  {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (<Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>)}
                   <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
                 </>
               )}
@@ -754,7 +753,7 @@ const PrimaryWindow = () => {
                 </Draggable>
               )
             })}
-          <Stepper drawerWidth={drawerWidth} canMove={canMove} setCanMove={setCanMove} activeStep={activeStep} setActiveStep={setActiveStep} />
+          <Stepper drawerWidth={drawerWidth} canMove={canMove} activeStep={activeStep} setActiveStep={setActiveStep} />
         </Box>
       </Box>
     </ArcherContainer>

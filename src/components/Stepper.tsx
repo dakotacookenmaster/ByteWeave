@@ -8,16 +8,19 @@ import { Assignment } from '../data/Assignment.type';
 
 const data: Assignment = untypedData
 
-const Stepper = (props: { drawerWidth: number, setActiveStep: Function, activeStep: number, canMove: boolean, setCanMove: Function }) => {
+const Stepper = (props: { drawerWidth: number, setActiveStep: Function, activeStep: number, canMove: boolean }) => {
   const theme = useTheme();
-  const { drawerWidth, setActiveStep, activeStep, canMove, setCanMove } = props
+  const { drawerWidth, setActiveStep, activeStep, canMove } = props
   
-  const maximumSteps = data.questions.length - 1
+  const maximumSteps = data.questions.length
 
   const handleNext = () => {
     setActiveStep((prevActiveStep: number) => prevActiveStep + 1);
-    setCanMove(false)
   };
+
+  const handleBack = () => {
+    setActiveStep((prevActiveStep: number) => prevActiveStep - 1)
+  }
 
   return (
     <MobileStepper
@@ -40,7 +43,7 @@ const Stepper = (props: { drawerWidth: number, setActiveStep: Function, activeSt
         }
       }}
       nextButton={
-        <Button variant="outlined" size="small" onClick={handleNext} disabled={activeStep === maximumSteps || !canMove}>
+        <Button variant="outlined" size="small" onClick={handleNext} disabled={activeStep === maximumSteps - 1 || !canMove}>
           Next
           {theme.direction === 'rtl' ? (
             <KeyboardArrowLeft />
@@ -49,7 +52,16 @@ const Stepper = (props: { drawerWidth: number, setActiveStep: Function, activeSt
           )}
         </Button>
       }
-      backButton={<div></div>}
+      backButton={
+        <Button variant="outlined" size="small" onClick={handleBack} disabled={activeStep === 0}>
+          {theme.direction === 'rtl' ? (
+            <KeyboardArrowRight />
+          ) : (
+            <KeyboardArrowLeft />
+          )}
+          Back
+        </Button>
+      }
     />
   );
 }

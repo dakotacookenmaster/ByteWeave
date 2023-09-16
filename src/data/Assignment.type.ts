@@ -12,7 +12,7 @@ export type Assignment = {
             }[]
         },
         gatesProvided: string[],
-        canSkip: boolean,
+        canSkip?: boolean,
         answer: {
             inputs: {
                 defaultXPosition: number,
