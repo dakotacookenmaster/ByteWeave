@@ -22,7 +22,7 @@ export type Assignment = {
                 defaultXPosition: number,
                 defaultYPosition: number
             }[],
-            truthTable: number[][][]
+            truthTable: number[][][] | string[][][]
         }
     }[],
 }

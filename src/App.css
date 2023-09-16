@@ -1,3 +1,12 @@
+@font-face {
+    font-family: "DSEG7-Modern";
+    src: 
+        url("./assets/DSEG7-Modern/DSEG7Modern-Regular.woff2") format("woff2"),
+        url("./assets/DSEG7-Modern/DSEG7Modern-Regular.woff") format("woff"),
+        url("./assets/DSEG7-Modern/DSEG7Modern-Regular.ttf") format('truetype');
+
+}
+
 .input-output {
     border-radius: 100%;
     padding: 10px;

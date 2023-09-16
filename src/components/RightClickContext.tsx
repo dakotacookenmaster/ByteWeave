@@ -29,12 +29,14 @@ export default function RightClickContext(props: { inputLength: number, outputLe
             >
                 <Paper>
                     <MenuList>
-                        <MenuItem onClick={beginLinking}>
-                            <ListItemIcon>
-                                <AddLinkIcon color="success" fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText>Connect</ListItemText>
-                        </MenuItem>
+                        {type !== GateType.SEVEN_SEGMENT_DISPLAY && (
+                            <MenuItem onClick={beginLinking}>
+                                <ListItemIcon>
+                                    <AddLinkIcon color="success" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>Connect</ListItemText>
+                            </MenuItem>
+                        )}
                         {type === GateType.INPUT && (
                             <MenuItem onClick={toggleInput}>
                                 <ListItemIcon>

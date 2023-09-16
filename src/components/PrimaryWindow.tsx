@@ -17,7 +17,7 @@ import Stepper from './Stepper';
 import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
-import { AndGate, InputGate, Labeled, NandGate, NorGate, NotGate, OrGate, OutputGate } from '../helpers/Gates';
+import { AndGate, InputGate, Labeled, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay } from '../helpers/Gates';
 import { Button, Paper, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
 import { cloneDeep, isEqual } from 'lodash';
@@ -143,6 +143,13 @@ const PrimaryWindow = () => {
       }
       let failed = false
       for (let j = 0; j < outputs.length; j++) {
+        if (outputs[j].type === GateType.SEVEN_SEGMENT_DISPLAY) {
+          if (truthTable[i][1][j] !== outputs[j].value) {
+            enqueueSnackbar("Hm, that's not quite right...", { variant: "error" })
+            failed = true
+            break
+          }
+        }
         if (Boolean(truthTable[i][1][j]) !== outputs[j].output) {
           enqueueSnackbar("Hm, that's not quite right...", { variant: "error" })
           failed = true
@@ -169,7 +176,7 @@ const PrimaryWindow = () => {
     setCanMove(true)
   }
 
-  const checkGatesInQuestion = (gate: ("AND" | "OR" | "NOT" | "NAND" | "NOR" | "INPUT" | "OUTPUT")): boolean => {
+  const checkGatesInQuestion = (gate: ("AND" | "OR" | "NOT" | "NAND" | "NOR" | "INPUT" | "OUTPUT" | "SEVEN_SEGMENT_DISPLAY")): boolean => {
     return data.gatesProvidedInEveryQuestion.includes(gate) || data.questions[activeStep].gatesProvided.includes(gate)
   }
 
@@ -191,11 +198,17 @@ const PrimaryWindow = () => {
       gate.dependencies = gate.dependencies.filter(dependency => {
         if (dependency.input0?.id === gate.id) {
           dependency.input0 = undefined
-        } else {
-          if (![GateType.NOT, GateType.OUTPUT].includes(dependency.type)) {
-            dependency.input1 = undefined
-          }
         }
+        if (dependency.input1?.id === gate.id) {
+          dependency.input1 = undefined
+        }
+        if (dependency.input2?.id === gate.id) {
+          dependency.input2 = undefined
+        }
+        if (dependency.input3?.id === gate.id) {
+          dependency.input3 = undefined
+        }
+
         return false
       })
 
@@ -240,6 +253,12 @@ const PrimaryWindow = () => {
         if (dependency.input1?.id === gate.id) {
           dependency.input1 = undefined
         }
+        if (dependency.input2?.id === gate.id) {
+          dependency.input2 = undefined
+        }
+        if (dependency.input3?.id === gate.id) {
+          dependency.input3 = undefined
+        }
 
         return false
       })
@@ -251,6 +270,16 @@ const PrimaryWindow = () => {
       }
       if (gate.input1) {
         gate.input1.dependencies = gate.input1.dependencies.filter(dependency => {
+          return dependency.id !== gate.id
+        })
+      }
+      if (gate.input2) {
+        gate.input2.dependencies = gate.input2.dependencies.filter(dependency => {
+          return dependency.id !== gate.id
+        })
+      }
+      if (gate.input3) {
+        gate.input3.dependencies = gate.input3.dependencies.filter(dependency => {
           return dependency.id !== gate.id
         })
       }
@@ -288,6 +317,9 @@ const PrimaryWindow = () => {
         case GateType.OUTPUT:
           newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id, `OUT: ${label}`)
           setLabel(prevLabel => nextChar(prevLabel))
+          break
+        case GateType.SEVEN_SEGMENT_DISPLAY:
+          newGate = new SevenSegmentDisplay(id, "")
           break
         default:
           break
@@ -351,8 +383,14 @@ const PrimaryWindow = () => {
         if ((receivingGate.input0 && receivingGate instanceof NotGate) || (receivingGate.input0 && receivingGate instanceof OutputGate)) {
           return prevGates
         }
-        if (receivingGate.input0 && receivingGate.input1) {
-          return prevGates
+        if ([GateType.AND, GateType.OR, GateType.NAND, GateType.NOR].includes(receivingGate.type)) {
+          if (receivingGate.input0 && receivingGate.input1) {
+            return prevGates
+          } 
+        } else {
+          if (receivingGate.input0 && receivingGate.input1 && receivingGate.input2 && receivingGate.input3) {
+            return prevGates
+          }
         }
 
         inputtingGate.dependencies.push(receivingGate)
@@ -360,8 +398,14 @@ const PrimaryWindow = () => {
         if (!receivingGate.input0) {
           receivingGate.input0 = inputtingGate
           return copyPrevGates
-        } else {
+        } else if (!receivingGate.input1) {
           receivingGate.input1 = inputtingGate
+          return copyPrevGates
+        } else if (!receivingGate.input2) {
+          receivingGate.input2 = inputtingGate
+          return copyPrevGates
+        } else {
+          receivingGate.input3 = inputtingGate
           return copyPrevGates
         }
       })
@@ -454,6 +498,16 @@ const PrimaryWindow = () => {
             </ListItemButton>
           </ListItem>
         )}
+        {checkGatesInQuestion("SEVEN_SEGMENT_DISPLAY") && (
+          <ListItem disablePadding onClick={() => handleAddGate(GateType.SEVEN_SEGMENT_DISPLAY)}>
+            <ListItemButton>
+              <ListItemIcon>
+                <img width="50" height="50" src="https://img.icons8.com/dusk/96/display.png" alt="display" />
+              </ListItemIcon>
+              <ListItemText primary={"OUTPUT"} />
+            </ListItemButton>
+          </ListItem>
+        )}
 
       </List>
       <Toolbar sx={{ position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
@@ -526,8 +580,8 @@ const PrimaryWindow = () => {
                   <IconButton color="primary" onClick={() => checkAnswer()}>
                     <CheckCircleIcon />
                   </IconButton>
-                  <IconButton color="primary">
-                    <GradingIcon onClick={() => setIsOpen(true)} />
+                  <IconButton color="primary" onClick={() => setIsOpen(true)}>
+                    <GradingIcon />
                   </IconButton>
                 </>
               ) : (
@@ -639,8 +693,8 @@ const PrimaryWindow = () => {
                       width: "100%",
                       height: "100%",
                       position: "relative",
-                      background: gate.type === GateType.OUTPUT ? "none" : `url("${gate.imgSrc}")`,
-                      backgroundSize: gate.type === GateType.OUTPUT ? "" : "cover",
+                      background: gate.type === GateType.OUTPUT || gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "none" : `url("${gate.imgSrc}")`,
+                      backgroundSize: gate.type === GateType.OUTPUT || gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "" : "cover",
                     }} sx={(gate.type === GateType.OUTPUT) ? {
                       "&::before": {
                         content: '""',
@@ -659,7 +713,7 @@ const PrimaryWindow = () => {
                           <div
                             style={{
                               position: "relative",
-                              top: gate.type === GateType.NOT ? "30px" : "15px",
+                              top: gate.type === GateType.NOT ? "30px" : gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "-8px" : "15px",
                               left: "-25px",
                               background: gate.input0?.output ? "green" : "red",
                             }}
@@ -670,7 +724,7 @@ const PrimaryWindow = () => {
                       )}
                       {(gate.type === GateType.OUTPUT) && (
                         <ArcherElement
-                          id={`gate-${gate.id}-inputs`}
+                          id={`gate-${gate.id}-input0`}
                         >
                           <div
                             style={{
@@ -691,7 +745,7 @@ const PrimaryWindow = () => {
                           <div
                             style={{
                               position: "relative",
-                              top: "20px",
+                              top: gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "-5px" : "20px",
                               left: "-25px",
                               background: gate.input1?.output ? "green" : "red",
                             }}
@@ -700,32 +754,66 @@ const PrimaryWindow = () => {
                           </div>
                         </ArcherElement>
                       )}
-                      <ArcherElement
-                        id={`gate-${gate.id}-output`}
-                        relations={gate.dependencies.map(dependency => {
-                          return {
-                            targetId: dependency.type === GateType.OUTPUT ? `gate-${dependency.id}-inputs` : `gate-${dependency.id}-${dependency.input0?.id === gate.id ? "input0" : "input1"}`,
-                            targetAnchor: 'left',
-                            sourceAnchor: 'right',
-                            style: {
-                              strokeColor: gate.output ? "#00ff00" : "#ff0000",
-                              endMarker: false,
+                      {(gate.type === GateType.SEVEN_SEGMENT_DISPLAY) && (
+                        <>
+                          <ArcherElement
+                            id={`gate-${gate.id}-input2`}
+                          >
+                            <div
+                              style={{
+                                position: "relative",
+                                top: "-2px",
+                                left: "-25px",
+                                background: gate.input2?.output ? "green" : "red",
+                              }}
+                              className="input-output">
+                              {gate.input2?.output ? "1" : "0"}
+                            </div>
+                          </ArcherElement>
+                          <ArcherElement
+                            id={`gate-${gate.id}-input3`}
+                          >
+                            <div
+                              style={{
+                                position: "relative",
+                                top: "1px",
+                                left: "-25px",
+                                background: gate.input3?.output ? "green" : "red",
+                              }}
+                              className="input-output">
+                              {gate.input3?.output ? "1" : "0"}
+                            </div>
+                          </ArcherElement>
+                        </>
+                      )}
+                      {gate.type !== GateType.SEVEN_SEGMENT_DISPLAY && (
+                        <ArcherElement
+                          id={`gate-${gate.id}-output`}
+                          relations={gate.dependencies.map(dependency => {
+                            return {
+                              targetId: `gate-${dependency.id}-${dependency.input0?.id === gate.id ? "input0" : dependency.input1?.id === gate.id ? "input1" : dependency.input2?.id === gate.id ? "input2" : "input3"}`,
+                              targetAnchor: 'left',
+                              sourceAnchor: 'right',
+                              style: {
+                                strokeColor: gate.output ? "#00ff00" : "#ff0000",
+                                endMarker: false,
+                              }
                             }
-                          }
-                        })}
-                      >
-                        <div
-                          style={{
-                            position: "relative",
-                            top: [GateType.NOT, GateType.OUTPUT].includes(gate.type) ? "7px" : gate.type === GateType.INPUT ? "30px" : "-12px",
-                            left: "85px",
-                            background: gate.output ? "green" : "red",
-                          }}
-                          className="input-output"
+                          })}
                         >
-                          {gate.output ? "1" : "0"}
-                        </div>
-                      </ArcherElement>
+                          <div
+                            style={{
+                              position: "relative",
+                              top: [GateType.NOT, GateType.OUTPUT].includes(gate.type) ? "7px" : gate.type === GateType.INPUT ? "30px" : "-12px",
+                              left: "85px",
+                              background: gate.output ? "green" : "red",
+                            }}
+                            className="input-output"
+                          >
+                            {gate.output ? "1" : "0"}
+                          </div>
+                        </ArcherElement>
+                      )}
                       {[GateType.INPUT, GateType.OUTPUT].includes(gate.type) && (
                         <Typography sx={{
                           background: theme.palette.primary.dark,
@@ -735,6 +823,16 @@ const PrimaryWindow = () => {
                           top: gate.type === GateType.INPUT ? "-60px" : "-80px",
                         }} variant="overline" className="label">{(gate as unknown as Labeled).label}</Typography>
                       )}
+                      {
+                        gate.type === GateType.SEVEN_SEGMENT_DISPLAY && (
+                          <div style={{
+                            fontFamily: "DSEG7-Modern",
+                            fontSize: "60px",
+                            marginTop: "-90px",
+                            marginLeft: "14px",
+                          }}>{gate.value}</div>
+                        )
+                      }
                     </Paper>
                   </Box>
                 </Draggable>

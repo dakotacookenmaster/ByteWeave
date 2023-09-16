@@ -4,91 +4,10 @@
     "gatesProvidedInEveryQuestion": [
         "AND",
         "OR",
-        "NOT"
+        "NOT",
+        "SEVEN_SEGMENT_DISPLAY"
     ],
     "questions": [
-        {
-            "instructions": {
-                "title": "XOR Gate Creation Challenge",
-                "description": "In this digital logic assignment, you'll create an XOR gate using two input gates, one output gate, and a mix of AND, OR, and NOT gates. XOR gates are vital in digital circuits, producing 'true' (1) output with an odd number of 'true' inputs, and 'false' (1) otherwise.",
-                "resources": [
-                    {
-                        "title": "XOR Truth Table",
-                        "link": "https://cdn.shopify.com/s/files/1/0611/1644/9018/files/XOR_Logic_Gate_symbol_with_truth_table_480x480.jpg?v=1681931209"
-                    }
-                ]
-            },
-            "gatesProvided": [],
-            "answer": {
-                "inputs": [
-                    {
-                        "defaultXPosition": 0,
-                        "defaultYPosition": 100
-                    },
-                    {
-                        "defaultXPosition": 0,
-                        "defaultYPosition": 230
-                    }
-                ],
-                "outputs": [
-                    {
-                        "defaultXPosition": 200,
-                        "defaultYPosition": 130
-                    }
-                ],
-                "truthTable": [
-                    [[0, 0], [0]],
-                    [[0, 1], [1]],
-                    [[1, 0], [1]],
-                    [[1, 1], [0]]
-                ]
-            }
-        },
-        {
-            "instructions": {
-                "title": "Even Parity Circuit Creation Challenge",
-                "description": "Design an even parity circuit using only AND, OR, and NOT gates. Even parity circuits produce an output of 1 when there's an odd number of 'true' inputs and 0 when it's even. For instance, if inputs A, B, and C are 1, 0, and 1, the circuit should yield 0 (since there are two 'true' inputs), and if all inputs are 1, the output should be 1 (indicating an odd number of 'true' inputs).",
-                "resources": [
-                    {
-                        "title": "Even Parity Truth Table",
-                        "link": "https://www.electronicshub.org/wp-content/uploads/2015/07/Even-Parity-Generator-Truth-Table.jpg"
-                    }
-                ]
-            },
-            "gatesProvided": [],
-            "answer": {
-                "inputs": [
-                    {
-                        "defaultXPosition": 0,
-                        "defaultYPosition": 100
-                    },
-                    {
-                        "defaultXPosition": 0,
-                        "defaultYPosition": 230
-                    },
-                    {
-                        "defaultXPosition": 0,
-                        "defaultYPosition": 360
-                    }
-                ],
-                "outputs": [
-                    {
-                        "defaultXPosition": 400,
-                        "defaultYPosition": 230
-                    }
-                ],
-                "truthTable": [
-                    [[0, 0, 0], [0]],
-                    [[0, 0, 1], [1]],
-                    [[0, 1, 0], [1]],
-                    [[0, 1, 1], [0]],
-                    [[1, 0, 0], [1]],
-                    [[1, 0, 1], [0]],
-                    [[1, 1, 0], [0]],
-                    [[1, 1, 1], [1]]
-                ]
-            }
-        },
         {
             "instructions": {
                 "title": "You Finished!",

@@ -1,11 +1,24 @@
+export enum GateType {
+    AND,
+    OR,
+    NOT,
+    NAND,
+    NOR,
+    INPUT,
+    OUTPUT,
+    SEVEN_SEGMENT_DISPLAY,
+}
+
 export interface Gate {
     id: number
     type: GateType
     output?: boolean
     input0?: Gate
     input1?: Gate
-    inputs?: Gate[]
-    imgSrc: string
+    input2?: Gate
+    input3?: Gate
+    imgSrc?: string
+    value?: string
     dependencies: Gate[]
     defaultPlacement: [number, number]
     decide(): void
@@ -14,22 +27,12 @@ export interface Gate {
 
 const countOccurrences = (array: number[], value: number) => {
     let count = 0
-    for(let element of array) {
-        if(element === value) {
+    for (let element of array) {
+        if (element === value) {
             count++
         }
     }
     return count
-} 
-
-export enum GateType {
-    AND,
-    OR,
-    NOT,
-    NAND,
-    NOR,
-    INPUT,
-    OUTPUT
 }
 
 export interface Labeled {
@@ -50,7 +53,7 @@ class TwoInputGate {
         visited.push(this.id)
         this.decide()
         for (let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 1) {
+            if (countOccurrences(visited, dependency.id) > 1) {
                 throw new Error("Cycle detected while running autograder.")
             }
             dependency.autoGrader([...visited])
@@ -107,7 +110,7 @@ class NotGate implements Gate {
         visited.push(this.id)
         this.decide()
         for (let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 1) {
+            if (countOccurrences(visited, dependency.id) > 1) {
                 throw new Error("Cycle detected while running autograder.")
             }
             dependency.autoGrader([...visited])
@@ -131,7 +134,7 @@ class InputGate implements Gate, Labeled {
         visited.push(this.id)
         this.decide()
         for (let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 1) {
+            if (countOccurrences(visited, dependency.id) > 1) {
                 throw new Error("Cycle detected while running autograder.")
             }
             dependency.autoGrader([...visited])
@@ -157,12 +160,37 @@ class OutputGate implements Gate, Labeled {
     autoGrader(visited: number[]): void {
         visited.push(this.id)
         this.decide()
-        for(let dependency of this.dependencies) {
-            if(countOccurrences(visited, dependency.id) > 1) {
+        for (let dependency of this.dependencies) {
+            if (countOccurrences(visited, dependency.id) > 1) {
                 throw new Error("Cycle detected while running autograder.")
             }
             dependency.autoGrader([...visited])
         }
+    }
+}
+
+class SevenSegmentDisplay implements Gate {
+    type: GateType = GateType.SEVEN_SEGMENT_DISPLAY
+    input0?: Gate | undefined
+    input1?: Gate | undefined
+    input2?: Gate | undefined
+    input3?: Gate | undefined
+    dependencies: Gate[] = []
+    constructor(
+        public id: number,
+        public value: string,
+        public defaultPlacement: [number, number] = [0, 0]
+    ) { }
+    decide(): void {
+        const result = parseInt(`${this.input0?.output ? "1" : "0"}${this.input1?.output ? "1" : "0"}${this.input2?.output ? "1" : "0"}${this.input3?.output ? "1" : "0"}`, 2)
+        if(result > 9) {
+            this.value = "-"
+            return
+        }
+        this.value = `${result}`
+    }
+    autoGrader(): void {
+        this.decide()
     }
 }
 
@@ -173,5 +201,6 @@ export {
     NandGate,
     NorGate,
     InputGate,
-    OutputGate
+    OutputGate,
+    SevenSegmentDisplay
 }
