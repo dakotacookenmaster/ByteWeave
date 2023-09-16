@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
 import { AndGate, InputGate, Labeled, NandGate, NorGate, NotGate, OrGate, OutputGate } from '../helpers/Gates';
-import { Button, Paper } from '@mui/material';
+import { Button, Paper, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
 import { cloneDeep, isEqual } from 'lodash';
 import nextChar from '../helpers/NextLetter';
@@ -29,6 +29,8 @@ import { useSnackbar } from 'notistack';
 import RightClickContext from './RightClickContext';
 import { green } from '@mui/material/colors';
 import { VERSION } from '../constants';
+import GradingIcon from '@mui/icons-material/Grading';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const data: Assignment = untypedData
 
@@ -53,8 +55,8 @@ const PrimaryWindow = () => {
     type: GateType.INPUT,
     output: false,
   })
-
-  let timer: number | null
+  const [timer, setTimer] = React.useState<number | null>()
+  const isMobile = useMediaQuery("(max-width: 1000px)")
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -74,6 +76,8 @@ const PrimaryWindow = () => {
   }
 
   const handleLongTouch = (event: any, gate: Gate) => {
+    event.preventDefault()
+    event.currentTarget = event.target
     setRightClickContextGate({
       id: gate.id,
       type: gate.type,
@@ -86,15 +90,11 @@ const PrimaryWindow = () => {
   const handleTouchEnd = () => {
     if (timer) {
       clearTimeout(timer)
-      timer = null
+      setTimer(null)
     }
   }
 
   const handleTouchMove = handleTouchEnd
-
-  const handleTouchStart = (event: any, gate: Gate) => {
-    timer = setTimeout(() => handleLongTouch(event, gate), 800)
-  }
 
   React.useEffect(() => {
     const intervalId = setInterval(() => {
@@ -385,6 +385,14 @@ const PrimaryWindow = () => {
     }
   }
 
+  const handleTouchStart = (event: any, gate: Gate) => {
+    if (selected === -1) {
+      setTimer(setTimeout(() => handleLongTouch(event, gate), 800))
+    } else {
+      handleConnect(gate.id)
+    }
+  }
+
   const drawer = (
     <div>
       <Toolbar>
@@ -527,8 +535,22 @@ const PrimaryWindow = () => {
               {data.assignmentName}
             </Typography>
             <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
-              <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
-              <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
+              {isMobile ? (
+                <>
+                  <IconButton color="primary" onClick={() => checkAnswer()}>
+                    <CheckCircleIcon />
+                  </IconButton>
+                  <IconButton color="primary">
+                    <GradingIcon onClick={() => setIsOpen(true)} />
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
+                  <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
+                </>
+              )}
+
             </Box>
           </Toolbar>
         </AppBar>
@@ -602,7 +624,10 @@ const PrimaryWindow = () => {
                     className="handle"
                     ref={ref}
                     key={`box-${gate.id}`}
-                    onClick={() => handleConnect(gate.id)}
+                    onClick={() => {
+                      handleConnect(gate.id)
+                      console.log("IN HERE")
+                    }}
                     onContextMenu={(event) => {
                       setRightClickContextGate({
                         id: gate.id,
@@ -613,7 +638,6 @@ const PrimaryWindow = () => {
                     }}
                     onTouchStart={(event) => handleTouchStart(event, gate)}
                     onTouchMove={() => handleTouchMove()}
-                    onTouchEnd={() => handleTouchEnd()}
                     sx={{
                       width: "80px",
                       height: "80px",
