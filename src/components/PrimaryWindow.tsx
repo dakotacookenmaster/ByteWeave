@@ -43,8 +43,7 @@ const PrimaryWindow = () => {
   const [selected, setSelected] = React.useState<number>(-1)
   const archerContainerRef = React.useRef(null)
   const [id, setId] = React.useState(0)
-  const [inputLabel, setInputLabel] = React.useState("A")
-  const [outputLabel, setOutputLabel] = React.useState("A")
+  const [label, setLabel] = React.useState("A")
   const [activeStep, setActiveStep] = React.useState(0)
   const [isOpen, setIsOpen] = React.useState(true)
   const [canMove, setCanMove] = React.useState(false)
@@ -174,18 +173,6 @@ const PrimaryWindow = () => {
     return data.gatesProvidedInEveryQuestion.includes(gate) || data.questions[activeStep].gatesProvided.includes(gate)
   }
 
-  const updateLabel = (type: "input" | "output") => {
-    const setter = (prevLabel: string) => {
-      return nextChar(prevLabel)
-    }
-
-    if (type === "input") {
-      setInputLabel(setter)
-    } else {
-      setOutputLabel(setter)
-    }
-  }
-
   const resetCurrentGate = () => {
     setRightClickContextGate({
       id: -1,
@@ -295,12 +282,12 @@ const PrimaryWindow = () => {
           newGate = new NorGate("https://img.icons8.com/nolan/96/logic-gates-nor.png", id)
           break
         case GateType.INPUT:
-          newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id, `IN: ${inputLabel}`)
-          updateLabel("input")
+          newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id, `IN: ${label}`)
+          setLabel(prevLabel => nextChar(prevLabel))
           break
         case GateType.OUTPUT:
-          newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id, `OUT: ${outputLabel}`)
-          updateLabel("output")
+          newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id, `OUT: ${label}`)
+          setLabel(prevLabel => nextChar(prevLabel))
           break
         default:
           break
@@ -334,7 +321,7 @@ const PrimaryWindow = () => {
         newLabel = nextChar(newLabel)
       }
       setId(newId)
-      setInputLabel(newLabel)
+      setLabel(newLabel)
       return newGates
     })
     setIsOpen(true)
