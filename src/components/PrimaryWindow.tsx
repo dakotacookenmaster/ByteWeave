@@ -54,17 +54,47 @@ const PrimaryWindow = () => {
     output: false,
   })
 
+  let timer: number | null
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   React.useEffect(() => {
-    if(selected !== -1) {
+    if (selected !== -1) {
       document.body.style.cursor = "crosshair"
     } else {
       document.body.style.cursor = "default"
     }
   }, [selected])
+
+  const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault() // Stop the default right click context from appearing
+    setAnchorElement(event.currentTarget)
+  }
+
+  const handleLongTouch = (event: any, gate: Gate) => {
+    setRightClickContextGate({
+      id: gate.id,
+      type: gate.type,
+      output: Boolean(gate.output)
+    })
+
+    handleRightClick(event)
+  }
+
+  const handleTouchEnd = () => {
+    if (timer) {
+      clearTimeout(timer)
+      timer = null
+    }
+  }
+
+  const handleTouchMove = handleTouchEnd
+
+  const handleTouchStart = (event: any, gate: Gate) => {
+    timer = setTimeout(() => handleLongTouch(event, gate), 800)
+  }
 
   React.useEffect(() => {
     const intervalId = setInterval(() => {
@@ -320,7 +350,7 @@ const PrimaryWindow = () => {
   }
 
   const handleConnect = (id: number) => {
-    if(selected !== -1) {
+    if (selected !== -1) {
       setGates(prevGates => {
         const copyPrevGates = cloneDeep(prevGates)
         const receivingGate = copyPrevGates.find(gate => gate.id === id)
@@ -353,11 +383,6 @@ const PrimaryWindow = () => {
       })
       setSelected(-1)
     }
-  }
-
-  const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
-    event.preventDefault() // Stop the default right click context from appearing
-    setAnchorElement(event.currentTarget)
   }
 
   const drawer = (
@@ -444,7 +469,7 @@ const PrimaryWindow = () => {
           Designed by Dakota Cookenmaster
         </Typography>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
-          Version { VERSION } &#8226; Icons by <a href="https://icons8.com">Icons8</a>
+          Version {VERSION} &#8226; Icons by <a href="https://icons8.com">Icons8</a>
         </Typography>
       </Toolbar>
     </div>
@@ -586,6 +611,9 @@ const PrimaryWindow = () => {
                       })
                       handleRightClick(event)
                     }}
+                    onTouchStart={(event) => handleTouchStart(event, gate)}
+                    onTouchMove={() => handleTouchMove()}
+                    onTouchEnd={() => handleTouchEnd()}
                     sx={{
                       width: "80px",
                       height: "80px",
