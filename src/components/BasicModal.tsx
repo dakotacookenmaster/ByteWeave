@@ -2,23 +2,26 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import { Instruction } from '../data/Assignment.type';
-import { Button } from '@mui/material';
+import { Button, useTheme } from '@mui/material';
+import { useMediaQuery } from "@mui/material"
 
-const style = {
-    margin: "0 auto",
-    width: "70vw",
-    marginTop: "10vh",
-    overflow: "auto",
-    maxHeight: "80vh",
-    bgcolor: 'background.paper',
-    border: '2px solid #000',
-    boxShadow: 24,
-    p: 4,
-};
-
-export default function BasicModal(props: { isOpen: boolean, setIsOpen: Function, data: Instruction }) {
-    const { isOpen, setIsOpen, data } = props
+export default function BasicModal(props: { drawerWidth: number, isOpen: boolean, setIsOpen: Function, data: Instruction }) {
+    const { isOpen, setIsOpen, data, drawerWidth } = props
     const handleClose = () => setIsOpen(false);
+    const theme = useTheme()
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+
+    const style = {
+        marginLeft: `calc(${drawerWidth}px + 5vw)`,
+        width: isMobile ? "90vw" : `calc(90vw - ${drawerWidth}px)`,
+        marginTop: "10vh",
+        overflow: "auto",
+        maxHeight: "80vh",
+        bgcolor: 'background.paper',
+        border: '2px solid #000',
+        boxShadow: 24,
+        p: 4,
+    };
 
     return (
         <div>

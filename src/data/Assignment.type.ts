@@ -1,5 +1,4 @@
 export type Assignment = {
-    assignmentName: string,
     canSkipAnyQuestion: boolean,
     gatesProvidedInEveryQuestion: string[],
     questions: {

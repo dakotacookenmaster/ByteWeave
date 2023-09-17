@@ -17,7 +17,7 @@ import Stepper from './Stepper';
 import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
-import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay } from '../helpers/Gates';
+import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay, TwoInputGate } from '../helpers/Gates';
 import { Button, Paper, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
 import { cloneDeep, isEqual } from 'lodash';
@@ -32,6 +32,7 @@ import { VERSION } from '../constants';
 import GradingIcon from '@mui/icons-material/Grading';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ConnectModal from './ConnectModal';
+import logo from "/byteweave-logo.png"
 
 const data: Assignment = untypedData
 
@@ -347,7 +348,7 @@ const PrimaryWindow = () => {
       return newGates
     })
     setIsOpen(true)
-    document.title = `${data.assignmentName} | ${data.questions[activeStep].instructions.title}`
+    document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
     setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
   }, [activeStep])
 
@@ -427,11 +428,12 @@ const PrimaryWindow = () => {
 
   const drawer = (
     <div>
-      <Toolbar>
-        <Typography variant="overline">Logical Gates</Typography>
+      <Toolbar sx={{ display: "flex", justifyContent: "center", padding: "20px", }}>
+        <img style={{ borderRadius: "20px", background: "white", width: "80%", padding: "20px" }} src={logo} alt="ByteWeave Logo" />
       </Toolbar>
       <Divider />
-      <List sx={{ marginBottom: "50px" }}>
+      <Typography sx={{ fontWeight: "bold", marginTop: "10px", display: "block", width: "100%", textAlign: "center" }} variant="overline">Logical Gates</Typography>
+      <List sx={{ overflow: "auto", marginBottom: "0px", maxHeight: "calc(100vh - 271px)" }}>
         {checkGatesInQuestion("AND") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.AND)}>
             <ListItemButton>
@@ -514,7 +516,7 @@ const PrimaryWindow = () => {
         )}
 
       </List>
-      <Toolbar sx={{ position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
+      <Toolbar sx={{paddingBottom: "10px", position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
           Designed by Dakota Cookenmaster
         </Typography>
@@ -535,7 +537,7 @@ const PrimaryWindow = () => {
         }
       }}
     >
-      <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
+      <BasicModal drawerWidth={drawerWidth} isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
       <ConnectModal isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} setConnectionSelection={setConnectionSelection} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         inputLength={data.questions[activeStep].answer.inputs.length}
@@ -577,25 +579,26 @@ const PrimaryWindow = () => {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap component="div">
-              {data.assignmentName}
+              {data.questions[activeStep].instructions.title}
             </Typography>
             <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
+              {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (
+                isMobile ? (
+                  <>
+                    <IconButton color="primary" onClick={() => checkAnswer()}>
+                      <CheckCircleIcon />
+                    </IconButton>
+                  </>
+                ) : (
+                  <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
+                ))}
               {isMobile ? (
-                <>
-                  <IconButton color="primary" onClick={() => checkAnswer()}>
-                    <CheckCircleIcon />
-                  </IconButton>
-                  <IconButton color="primary" onClick={() => setIsOpen(true)}>
-                    <GradingIcon />
-                  </IconButton>
-                </>
+                <IconButton color="primary" onClick={() => setIsOpen(true)}>
+                  <GradingIcon />
+                </IconButton>
               ) : (
-                <>
-                  {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (<Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>)}
-                  <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
-                </>
+                <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
               )}
-
             </Box>
           </Toolbar>
         </AppBar>
@@ -719,8 +722,11 @@ const PrimaryWindow = () => {
                             <div
                               style={{
                                 position: "relative",
-                                top: `calc(-${gate.inputs.length - 1}px * ${gate.inputs.length - 1} + 2px * ${index})`,
-                                left: "-25px",
+                                left: "-28px",
+                                top: gate instanceof TwoInputGate ?
+                                  "15px" : gate instanceof NotGate || gate instanceof OutputGate ?
+                                    "28px" : gate instanceof SevenSegmentDisplay ?
+                                      "-4px" : "0px",
                                 background: input?.output ? "green" : "red",
                               }}
                               className="input-output">
@@ -748,7 +754,9 @@ const PrimaryWindow = () => {
                           <div
                             style={{
                               position: "relative",
-                              top: "30px",
+                              top: gate instanceof InputGate ?
+                                "30px" : gate instanceof NotGate || gate instanceof OutputGate ?
+                                  "8px" : "-15px",
                               left: "85px",
                               background: gate.output ? "green" : "red",
                             }}
@@ -758,7 +766,15 @@ const PrimaryWindow = () => {
                         </ArcherElement>
                       )}
                       {gate.type === GateType.SEVEN_SEGMENT_DISPLAY && (
-                        <div>{gate.value}</div>
+                        <Box sx={{
+                          fontFamily: "DSEG7-Modern",
+                          fontSize: "65px",
+                          position: "absolute",
+                          top: "-10px",
+                          left: "13px"
+                        }}>
+                          {gate.value}
+                        </Box>
                       )}
                     </Paper>
                   </Box>

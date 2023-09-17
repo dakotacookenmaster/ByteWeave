@@ -1,10 +1,12 @@
 {
-    "assignmentName": "CPTR-108 Lab 5: Digital Logic Simulator",
     "canSkipAnyQuestion": true,
     "gatesProvidedInEveryQuestion": [
         "AND",
         "OR",
         "NOT",
+        "NAND",
+        "NOR",
+        "OUTPUT",
         "SEVEN_SEGMENT_DISPLAY",
         "INPUT"
     ],

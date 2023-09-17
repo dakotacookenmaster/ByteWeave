@@ -205,5 +205,6 @@ export {
     NorGate,
     InputGate,
     OutputGate,
+    TwoInputGate,
     SevenSegmentDisplay
 }
