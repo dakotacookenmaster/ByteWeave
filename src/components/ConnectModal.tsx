@@ -18,15 +18,9 @@ const style = {
     p: 4,
 };
 
-export default function ConnectModal(props: { receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
-    const { isOpen, setIsOpen, handleCompleteConnect, receivingGate } = props
+export default function ConnectModal(props: { defaultPinNumber: number | undefined, setDefaultPinNumber: Function, receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
+    const { isOpen, setIsOpen, handleCompleteConnect, setDefaultPinNumber, defaultPinNumber, receivingGate } = props
     const handleClose = () => setIsOpen(false)
-
-    let pinNumber = receivingGate?.inputs.map((input, index) => {
-        if(!input.gate) {
-            return `${index}`
-        }
-    })[0]
 
     return (
         <div>
@@ -42,10 +36,10 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                         <RadioGroup
                             aria-labelledby="receiving-pins"
                             name="receiving-pins"
-                            defaultValue={`${pinNumber}`}
+                            value={defaultPinNumber}
                             onChange={(event) => {
                                 const { value } = event.target
-                                pinNumber = value
+                                setDefaultPinNumber(+value)
                             }}
                         >
                             {
@@ -64,7 +58,7 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                             }
                         </RadioGroup>
                     </FormControl>
-                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={() => handleCompleteConnect(Number(pinNumber))}>Submit</Button>
+                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={() => handleCompleteConnect(defaultPinNumber)}>Submit</Button>
                 </Box>
             </Modal>
         </div>

@@ -63,6 +63,7 @@ const PrimaryWindow = () => {
   })
   const [timer, setTimer] = React.useState<number | null>()
   const isMobile = useMediaQuery("(max-width: 1000px)")
+  const [defaultPinNumber, setDefaultPinNumber] = React.useState<number | undefined>(undefined)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -407,6 +408,12 @@ const PrimaryWindow = () => {
         from: inputtingGate.id,
         to: receivingGate.id
       })
+
+      setDefaultPinNumber(receivingGate.inputs.map((v, i) => {
+        if(v.gate === undefined) {
+          return i
+        }
+      }).filter(v => v !== undefined)[0])
       setViewConnectModal(true)
       setSelected(-1)
     }
@@ -532,7 +539,7 @@ const PrimaryWindow = () => {
       }}
     >
       <BasicModal drawerWidth={drawerWidth} isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
-      <ConnectModal isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
+      <ConnectModal defaultPinNumber={defaultPinNumber} setDefaultPinNumber={setDefaultPinNumber} isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         inputLength={data.questions[activeStep].answer.inputs.length}
         outputLength={data.questions[activeStep].answer.outputs.length}
