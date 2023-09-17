@@ -53,12 +53,14 @@ export default function RightClickContext(props: { inputLength: number, outputLe
                                 <ListItemText>Delete Gate</ListItemText>
                             </MenuItem>
                         )}
-                        <MenuItem onClick={removeOutgoingConnections}>
-                            <ListItemIcon>
-                                <LinkOffIcon color="warning" fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText>Remove Output Links</ListItemText>
-                        </MenuItem>
+                        {(type !== GateType.SEVEN_SEGMENT_DISPLAY) && (
+                            <MenuItem onClick={removeOutgoingConnections}>
+                                <ListItemIcon>
+                                    <LinkOffIcon color="warning" fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>Remove Output Links</ListItemText>
+                            </MenuItem>
+                        )}
                     </MenuList>
                 </Paper>
             </Popover>
