@@ -18,9 +18,15 @@ const style = {
     p: 4,
 };
 
-export default function ConnectModal(props: { receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, setConnectionSelection: Function, handleCompleteConnect: React.MouseEventHandler<HTMLButtonElement> }) {
-    const { isOpen, setIsOpen, handleCompleteConnect, receivingGate, setConnectionSelection } = props
+export default function ConnectModal(props: { receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
+    const { isOpen, setIsOpen, handleCompleteConnect, receivingGate } = props
     const handleClose = () => setIsOpen(false)
+
+    let pinNumber = receivingGate?.inputs.map((input, index) => {
+        if(!input.gate) {
+            return `${index}`
+        }
+    })[0]
 
     return (
         <div>
@@ -36,19 +42,10 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                         <RadioGroup
                             aria-labelledby="receiving-pins"
                             name="receiving-pins"
-                            defaultValue={receivingGate?.inputs.map((input, index) => {
-                                if(!input.gate) {
-                                    return `${index}`
-                                }
-                            })[0]}
+                            defaultValue={`${pinNumber}`}
                             onChange={(event) => {
                                 const { value } = event.target
-                                setConnectionSelection((prevConnectionSelection: any) => {
-                                    return {
-                                        ...prevConnectionSelection,
-                                        input: +value
-                                    }
-                                })
+                                pinNumber = value
                             }}
                         >
                             {
@@ -67,7 +64,7 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                             }
                         </RadioGroup>
                     </FormControl>
-                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={handleCompleteConnect}>Submit</Button>
+                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={() => handleCompleteConnect(Number(pinNumber))}>Submit</Button>
                 </Box>
             </Modal>
         </div>
