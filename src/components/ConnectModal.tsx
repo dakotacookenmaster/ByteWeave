@@ -63,7 +63,7 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                             }
                         </RadioGroup>
                     </FormControl>
-                    <Button sx={{ marginTop: "30px auto" }} onClick={handleCompleteConnect}>Submit</Button>
+                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={handleCompleteConnect}>Submit</Button>
                 </Box>
             </Modal>
         </div>
