@@ -56,9 +56,6 @@ const PrimaryWindow = () => {
     from: undefined,
     to: undefined,
   })
-  const [_, setConnectionSelection] = React.useState<{ input: undefined | number }>({
-    input: undefined
-  })
   const [rightClickContextGate, setRightClickContextGate] = React.useState({
     id: -1,
     type: GateType.INPUT,
@@ -82,7 +79,6 @@ const PrimaryWindow = () => {
   const handleCloseConnectModal = () => {
     setViewConnectModal(false)
     setConnections({ from: undefined, to: undefined })
-    setConnectionSelection({ input: undefined })
   }
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -362,27 +358,19 @@ const PrimaryWindow = () => {
     (archerContainerRef as any).current?.refreshScreen()
   }
 
-  const handleCompleteConnect = () => {
+  const handleCompleteConnect = (pinNumber: any) => {
     setConnections(prevConnections => {
       if (prevConnections.from !== undefined && prevConnections.to !== undefined) {
-        setConnectionSelection(prevConnectionSelection => {
-          if (prevConnectionSelection.input !== undefined) {
-            setGates(prevGates => {
-              const copyPrevGates = cloneDeep(prevGates)
-              const inputtingGate = copyPrevGates.find(g => g.id === prevConnections.from)
-              const receivingGate = copyPrevGates.find(g => g.id === prevConnections.to)
+        setGates(prevGates => {
+          const copyPrevGates = cloneDeep(prevGates)
+          const inputtingGate = copyPrevGates.find(g => g.id === prevConnections.from)
+          const receivingGate = copyPrevGates.find(g => g.id === prevConnections.to)
 
-              if (inputtingGate && receivingGate) {
-                inputtingGate.dependencies.push(receivingGate)
-                receivingGate.inputs[(prevConnectionSelection.input as number)].gate = inputtingGate
-              }
-              return copyPrevGates
-            })
+          if (inputtingGate && receivingGate) {
+            inputtingGate.dependencies.push(receivingGate)
+            receivingGate.inputs[pinNumber].gate = inputtingGate
           }
-          return {
-            output: 0,
-            input: 0,
-          }
+          return copyPrevGates
         })
       }
       return {
@@ -544,7 +532,7 @@ const PrimaryWindow = () => {
       }}
     >
       <BasicModal drawerWidth={drawerWidth} isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
-      <ConnectModal isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} setConnectionSelection={setConnectionSelection} handleCompleteConnect={handleCompleteConnect} />
+      <ConnectModal isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         inputLength={data.questions[activeStep].answer.inputs.length}
         outputLength={data.questions[activeStep].answer.outputs.length}
@@ -794,8 +782,8 @@ const PrimaryWindow = () => {
                             position: "relative",
                             top: gate instanceof InputGate ? "-60px" : "-82px",
                           }}>{
-                            gate.label 
-                          }</Box>
+                              gate.label
+                            }</Box>
                         )
                       )}
                     </Paper>
