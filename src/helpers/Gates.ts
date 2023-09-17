@@ -12,11 +12,9 @@ export enum GateType {
 export interface Gate {
     id: number
     type: GateType
+    maxInputs: number
+    inputs: (Gate | undefined)[]
     output?: boolean
-    input0?: Gate
-    input1?: Gate
-    input2?: Gate
-    input3?: Gate
     imgSrc?: string
     value?: string
     dependencies: Gate[]
@@ -41,8 +39,10 @@ export interface Labeled {
 
 class TwoInputGate {
     dependencies: Gate[] = []
-    input0?: Gate
-    input1?: Gate
+    inputs: (Gate | undefined)[] = [undefined, undefined]
+    output = false
+    maxInputs = 2
+    maxOutputs = 1
     constructor(
         public imgSrc: string,
         public id: number,
@@ -62,34 +62,32 @@ class TwoInputGate {
 }
 
 class AndGate extends TwoInputGate implements Gate {
-    output: boolean = false
     type = GateType.AND
     decide() {
-        this.output = Boolean(this.input0?.output) && Boolean(this.input1?.output)
+        this.output = this.inputs.every(g => g?.output)
     }
 }
 
 class OrGate extends TwoInputGate implements Gate {
-    output: boolean = false
     type = GateType.OR
     decide(): void {
-        this.output = Boolean(this.input0?.output) || Boolean(this.input1?.output)
+        this.output = this.inputs.some(g => g?.output)
     }
 }
 
 class NandGate extends TwoInputGate implements Gate {
-    output: boolean = true
+    output = true
     type = GateType.NAND
     decide(): void {
-        this.output = !(Boolean(this.input0?.output) && Boolean(this.input1?.output))
+        this.output = !this.inputs.every(g => g?.output)
     }
 }
 
 class NorGate extends TwoInputGate implements Gate {
-    output: boolean = true
     type = GateType.NOR
+    output = true
     decide(): void {
-        this.output = !(Boolean(this.input0?.output) || Boolean(this.input1?.output))
+        this.output = !this.inputs.some(g => g?.output)
     }
 }
 
@@ -97,14 +95,15 @@ class NotGate implements Gate {
     output: boolean = true
     type = GateType.NOT
     dependencies: Gate[] = []
-    input0?: Gate
+    inputs: (Gate | undefined)[] = [undefined]
+    maxInputs = 1
     constructor(
         public imgSrc: string,
         public id: number,
         public defaultPlacement: [number, number] = [0, 0]
     ) { }
     decide(): void {
-        this.output = !Boolean(this.input0?.output)
+        this.output = !(this.inputs[0]?.output)
     }
     autoGrader(visited: number[]): void {
         visited.push(this.id)
@@ -119,8 +118,10 @@ class NotGate implements Gate {
 }
 
 class InputGate implements Gate, Labeled {
-    output: boolean = false
     type = GateType.INPUT
+    maxInputs = 0
+    inputs = []
+    output = false
     constructor(
         public imgSrc: string,
         public id: number,
@@ -144,9 +145,10 @@ class InputGate implements Gate, Labeled {
 
 class OutputGate implements Gate, Labeled {
     dependencies: Gate[] = []
-    output: boolean = false
     type = GateType.OUTPUT
-    input0?: Gate
+    inputs: (Gate | undefined)[] = [undefined]
+    output = false
+    maxInputs = 1
     constructor(
         public imgSrc: string,
         public id: number,
@@ -155,7 +157,7 @@ class OutputGate implements Gate, Labeled {
     ) { }
 
     decide(): void {
-        this.output = Boolean(this.input0?.output)
+        this.output = Boolean(this.inputs[0]?.output)
     }
     autoGrader(visited: number[]): void {
         visited.push(this.id)
@@ -171,10 +173,8 @@ class OutputGate implements Gate, Labeled {
 
 class SevenSegmentDisplay implements Gate {
     type: GateType = GateType.SEVEN_SEGMENT_DISPLAY
-    input0?: Gate | undefined
-    input1?: Gate | undefined
-    input2?: Gate | undefined
-    input3?: Gate | undefined
+    maxInputs: number = 4
+    inputs: (Gate | undefined)[] = [undefined, undefined, undefined, undefined]
     dependencies: Gate[] = []
     constructor(
         public id: number,
@@ -182,7 +182,10 @@ class SevenSegmentDisplay implements Gate {
         public defaultPlacement: [number, number] = [0, 0]
     ) { }
     decide(): void {
-        const result = parseInt(`${this.input0?.output ? "1" : "0"}${this.input1?.output ? "1" : "0"}${this.input2?.output ? "1" : "0"}${this.input3?.output ? "1" : "0"}`, 2)
+        const string = this.inputs.reduce((accumulator, input) => {
+            return accumulator + (input?.output ? "1" : "0")
+        }, "")
+        const result = parseInt(string, 2)
         if(result > 9) {
             this.value = "-"
             return

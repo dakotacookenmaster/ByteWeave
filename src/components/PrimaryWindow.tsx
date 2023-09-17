@@ -17,7 +17,7 @@ import Stepper from './Stepper';
 import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
-import { AndGate, InputGate, Labeled, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay } from '../helpers/Gates';
+import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay } from '../helpers/Gates';
 import { Button, Paper, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
 import { cloneDeep, isEqual } from 'lodash';
@@ -31,6 +31,7 @@ import { green } from '@mui/material/colors';
 import { VERSION } from '../constants';
 import GradingIcon from '@mui/icons-material/Grading';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ConnectModal from './ConnectModal';
 
 const data: Assignment = untypedData
 
@@ -49,6 +50,14 @@ const PrimaryWindow = () => {
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
   const [anchorElement, setAnchorElement] = React.useState<HTMLElement | null>(null)
+  const [viewConnectModal, setViewConnectModal] = React.useState(false)
+  const [connections, setConnections] = React.useState<{ from: undefined | number, to: undefined | number }>({
+    from: undefined,
+    to: undefined,
+  })
+  const [_, setConnectionSelection] = React.useState<{ input: undefined | number }>({
+    input: 0
+  })
   const [rightClickContextGate, setRightClickContextGate] = React.useState({
     id: -1,
     type: GateType.INPUT,
@@ -68,6 +77,12 @@ const PrimaryWindow = () => {
       document.body.style.cursor = "default"
     }
   }, [selected])
+
+  const handleCloseConnectModal = () => {
+    setViewConnectModal(false)
+    setConnections({ from: undefined, to: undefined })
+    setConnectionSelection({ input: undefined })
+  }
 
   const handleRightClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault() // Stop the default right click context from appearing
@@ -196,18 +211,12 @@ const PrimaryWindow = () => {
         return prevGates
       }
       gate.dependencies = gate.dependencies.filter(dependency => {
-        if (dependency.input0?.id === gate.id) {
-          dependency.input0 = undefined
-        }
-        if (dependency.input1?.id === gate.id) {
-          dependency.input1 = undefined
-        }
-        if (dependency.input2?.id === gate.id) {
-          dependency.input2 = undefined
-        }
-        if (dependency.input3?.id === gate.id) {
-          dependency.input3 = undefined
-        }
+        dependency.inputs = dependency.inputs.map(input => {
+          if (input?.id === gate.id) {
+            return undefined
+          }
+          return input
+        })
 
         return false
       })
@@ -245,44 +254,25 @@ const PrimaryWindow = () => {
         return prevGates
       }
 
-
       gate.dependencies = gate.dependencies.filter((dependency) => {
-        if (dependency.input0?.id === gate.id) {
-          dependency.input0 = undefined
-        }
-        if (dependency.input1?.id === gate.id) {
-          dependency.input1 = undefined
-        }
-        if (dependency.input2?.id === gate.id) {
-          dependency.input2 = undefined
-        }
-        if (dependency.input3?.id === gate.id) {
-          dependency.input3 = undefined
-        }
+        dependency.inputs = dependency.inputs.map(input => {
+          if (input?.id === gate.id) {
+            return undefined
+          }
+          return input
+        })
 
         return false
       })
 
-      if (gate.input0) {
-        gate.input0.dependencies = gate.input0.dependencies.filter(dependency => {
-          return dependency.id !== gate.id
-        })
-      }
-      if (gate.input1) {
-        gate.input1.dependencies = gate.input1.dependencies.filter(dependency => {
-          return dependency.id !== gate.id
-        })
-      }
-      if (gate.input2) {
-        gate.input2.dependencies = gate.input2.dependencies.filter(dependency => {
-          return dependency.id !== gate.id
-        })
-      }
-      if (gate.input3) {
-        gate.input3.dependencies = gate.input3.dependencies.filter(dependency => {
-          return dependency.id !== gate.id
-        })
-      }
+      gate.inputs = gate.inputs.map(input => {
+        if (input) {
+          input.dependencies = input?.dependencies.filter(dependency => {
+            return dependency.id !== gate.id
+          })
+        }
+        return input
+      })
 
       return copyPrevGates.filter(g => g.id !== gate.id)
     })
@@ -365,50 +355,64 @@ const PrimaryWindow = () => {
     (archerContainerRef as any).current?.refreshScreen()
   }
 
-  const handleConnect = (id: number) => {
-    if (selected !== -1) {
-      setGates(prevGates => {
-        const copyPrevGates = cloneDeep(prevGates)
-        const receivingGate = copyPrevGates.find(gate => gate.id === id)
-        const inputtingGate = copyPrevGates.find(gate => gate.id === selected)
+  const handleCompleteConnect = () => {
+    setConnections(prevConnections => {
+      if (prevConnections.from !== undefined && prevConnections.to !== undefined) {
+        setConnectionSelection(prevConnectionSelection => {
+          if (prevConnectionSelection.input !== undefined) {
+            setGates(prevGates => {
+              const copyPrevGates = cloneDeep(prevGates)
+              const inputtingGate = copyPrevGates.find(g => g.id === prevConnections.from)
+              const receivingGate = copyPrevGates.find(g => g.id === prevConnections.to)
 
-        if (!receivingGate || !inputtingGate) {
-          return prevGates
-        }
-
-        if (receivingGate instanceof InputGate) {
-          return prevGates
-        }
-
-        if ((receivingGate.input0 && receivingGate instanceof NotGate) || (receivingGate.input0 && receivingGate instanceof OutputGate)) {
-          return prevGates
-        }
-        if ([GateType.AND, GateType.OR, GateType.NAND, GateType.NOR].includes(receivingGate.type)) {
-          if (receivingGate.input0 && receivingGate.input1) {
-            return prevGates
-          } 
-        } else {
-          if (receivingGate.input0 && receivingGate.input1 && receivingGate.input2 && receivingGate.input3) {
-            return prevGates
+              if (inputtingGate && receivingGate) {
+                inputtingGate.dependencies.push(receivingGate)
+                receivingGate.inputs[(prevConnectionSelection.input as number)] = inputtingGate
+              }
+              return copyPrevGates
+            })
           }
-        }
+          return {
+            output: 0,
+            input: 0,
+          }
+        })
+      }
+      return {
+        from: undefined,
+        to: undefined
+      }
+    })
+    setViewConnectModal(false)
+  }
 
-        inputtingGate.dependencies.push(receivingGate)
+  const handleInitiateConnect = (id: number) => {
+    if (selected !== -1) {
+      const copyPrevGates = cloneDeep(gates)
+      const receivingGate = copyPrevGates.find(gate => gate.id === id)
+      const inputtingGate = copyPrevGates.find(gate => gate.id === selected)
 
-        if (!receivingGate.input0) {
-          receivingGate.input0 = inputtingGate
-          return copyPrevGates
-        } else if (!receivingGate.input1) {
-          receivingGate.input1 = inputtingGate
-          return copyPrevGates
-        } else if (!receivingGate.input2) {
-          receivingGate.input2 = inputtingGate
-          return copyPrevGates
-        } else {
-          receivingGate.input3 = inputtingGate
-          return copyPrevGates
-        }
+      if (!receivingGate || !inputtingGate) {
+        return
+      }
+
+      if (inputtingGate.id === receivingGate.id) {
+        return
+      }
+
+      if (receivingGate.inputs.filter(v => v).length === receivingGate.maxInputs) {
+        return
+      }
+
+      if (inputtingGate.dependencies.find(g => g.id === receivingGate.id)) {
+        return
+      }
+
+      setConnections({
+        from: inputtingGate.id,
+        to: receivingGate.id
       })
+      setViewConnectModal(true)
       setSelected(-1)
     }
   }
@@ -417,7 +421,7 @@ const PrimaryWindow = () => {
     if (selected === -1) {
       setTimer(setTimeout(() => handleLongTouch(event, gate), 800))
     } else {
-      handleConnect(gate.id)
+      handleInitiateConnect(gate.id)
     }
   }
 
@@ -504,7 +508,7 @@ const PrimaryWindow = () => {
               <ListItemIcon>
                 <img width="50" height="50" src="https://img.icons8.com/dusk/96/display.png" alt="display" />
               </ListItemIcon>
-              <ListItemText primary={"OUTPUT"} />
+              <ListItemText primary={"7 SEG DISPLAY"} />
             </ListItemButton>
           </ListItem>
         )}
@@ -532,6 +536,7 @@ const PrimaryWindow = () => {
       }}
     >
       <BasicModal isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
+      <ConnectModal isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} setConnectionSelection={setConnectionSelection} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         inputLength={data.questions[activeStep].answer.inputs.length}
         outputLength={data.questions[activeStep].answer.outputs.length}
@@ -665,8 +670,7 @@ const PrimaryWindow = () => {
                     ref={ref}
                     key={`box-${gate.id}`}
                     onClick={() => {
-                      handleConnect(gate.id)
-                      console.log("IN HERE")
+                      handleInitiateConnect(gate.id)
                     }}
                     onContextMenu={(event) => {
                       setRightClickContextGate({
@@ -706,92 +710,32 @@ const PrimaryWindow = () => {
                         transform: "rotate(180deg)"
                       }
                     } : {}}>
-                      {!(gate.type === GateType.INPUT) && !(gate.type === GateType.OUTPUT) && (
-                        <ArcherElement
-                          id={`gate-${gate.id}-input0`}
-                        >
-                          <div
-                            style={{
-                              position: "relative",
-                              top: gate.type === GateType.NOT ? "30px" : gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "-8px" : "15px",
-                              left: "-25px",
-                              background: gate.input0?.output ? "green" : "red",
-                            }}
-                            className="input-output">
-                            {gate.input0?.output ? "1" : "0"}
-                          </div>
-                        </ArcherElement>
-                      )}
-                      {(gate.type === GateType.OUTPUT) && (
-                        <ArcherElement
-                          id={`gate-${gate.id}-input0`}
-                        >
-                          <div
-                            style={{
-                              position: "relative",
-                              top: "29px",
-                              left: "-26px",
-                              background: gate.output ? "green" : "red",
-                            }}
-                            className="input-output">
-                            {gate.output ? "1" : "0"}
-                          </div>
-                        </ArcherElement>
-                      )}
-                      {![GateType.NOT, GateType.INPUT, GateType.OUTPUT].includes(gate.type) && (
-                        <ArcherElement
-                          id={`gate-${gate.id}-input1`}
-                        >
-                          <div
-                            style={{
-                              position: "relative",
-                              top: gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "-5px" : "20px",
-                              left: "-25px",
-                              background: gate.input1?.output ? "green" : "red",
-                            }}
-                            className="input-output">
-                            {gate.input1?.output ? "1" : "0"}
-                          </div>
-                        </ArcherElement>
-                      )}
-                      {(gate.type === GateType.SEVEN_SEGMENT_DISPLAY) && (
-                        <>
+                      {(gate.inputs.map((input, index) => {
+                        return (
                           <ArcherElement
-                            id={`gate-${gate.id}-input2`}
+                            id={`gate-${gate.id}-input${index}`}
+                            key={`gate-${gate.id}-input${index}`}
                           >
                             <div
                               style={{
                                 position: "relative",
-                                top: "-2px",
+                                top: `calc(-${gate.inputs.length - 1}px * ${gate.inputs.length - 1} + 2px * ${index})`,
                                 left: "-25px",
-                                background: gate.input2?.output ? "green" : "red",
+                                background: input?.output ? "green" : "red",
                               }}
                               className="input-output">
-                              {gate.input2?.output ? "1" : "0"}
+                              {input?.output ? "1" : "0"}
                             </div>
                           </ArcherElement>
-                          <ArcherElement
-                            id={`gate-${gate.id}-input3`}
-                          >
-                            <div
-                              style={{
-                                position: "relative",
-                                top: "1px",
-                                left: "-25px",
-                                background: gate.input3?.output ? "green" : "red",
-                              }}
-                              className="input-output">
-                              {gate.input3?.output ? "1" : "0"}
-                            </div>
-                          </ArcherElement>
-                        </>
-                      )}
-                      {gate.type !== GateType.SEVEN_SEGMENT_DISPLAY && (
+                        )
+                      }))}
+                      {(gate.type !== GateType.SEVEN_SEGMENT_DISPLAY) && (
                         <ArcherElement
                           id={`gate-${gate.id}-output`}
+                          key={`gate-${gate.id}-output`}
                           relations={gate.dependencies.map(dependency => {
                             return {
-                              targetId: `gate-${dependency.id}-${dependency.input0?.id === gate.id ? "input0" : dependency.input1?.id === gate.id ? "input1" : dependency.input2?.id === gate.id ? "input2" : "input3"}`,
+                              targetId: `gate-${dependency.id}-input${dependency.inputs.findIndex(input => input?.id === gate.id)}`,
                               targetAnchor: 'left',
                               sourceAnchor: 'right',
                               style: {
@@ -804,35 +748,18 @@ const PrimaryWindow = () => {
                           <div
                             style={{
                               position: "relative",
-                              top: [GateType.NOT, GateType.OUTPUT].includes(gate.type) ? "7px" : gate.type === GateType.INPUT ? "30px" : "-12px",
+                              top: "30px",
                               left: "85px",
                               background: gate.output ? "green" : "red",
                             }}
-                            className="input-output"
-                          >
+                            className="input-output">
                             {gate.output ? "1" : "0"}
                           </div>
                         </ArcherElement>
                       )}
-                      {[GateType.INPUT, GateType.OUTPUT].includes(gate.type) && (
-                        <Typography sx={{
-                          background: theme.palette.primary.dark,
-                          color: theme.palette.text.primary,
-                          fontWeight: "bold",
-                          display: "block",
-                          top: gate.type === GateType.INPUT ? "-60px" : "-80px",
-                        }} variant="overline" className="label">{(gate as unknown as Labeled).label}</Typography>
+                      {gate.type === GateType.SEVEN_SEGMENT_DISPLAY && (
+                        <div>{gate.value}</div>
                       )}
-                      {
-                        gate.type === GateType.SEVEN_SEGMENT_DISPLAY && (
-                          <div style={{
-                            fontFamily: "DSEG7-Modern",
-                            fontSize: "60px",
-                            marginTop: "-90px",
-                            marginLeft: "14px",
-                          }}>{gate.value}</div>
-                        )
-                      }
                     </Paper>
                   </Box>
                 </Draggable>

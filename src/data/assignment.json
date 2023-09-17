@@ -5,7 +5,8 @@
         "AND",
         "OR",
         "NOT",
-        "SEVEN_SEGMENT_DISPLAY"
+        "SEVEN_SEGMENT_DISPLAY",
+        "INPUT"
     ],
     "questions": [
         {
