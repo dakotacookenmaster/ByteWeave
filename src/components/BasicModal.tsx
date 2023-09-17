@@ -12,10 +12,11 @@ export default function BasicModal(props: { drawerWidth: number, isOpen: boolean
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
 
     const style = {
-        marginLeft: `calc(${drawerWidth}px + 5vw)`,
+        marginLeft: isMobile ? "auto" : `calc(${drawerWidth}px + 5vw)`,
         width: isMobile ? "90vw" : `calc(90vw - ${drawerWidth}px)`,
         marginTop: "10vh",
         overflow: "auto",
+        marginRight: isMobile ? "auto" : "0",
         maxHeight: "80vh",
         bgcolor: 'background.paper',
         border: '2px solid #000',

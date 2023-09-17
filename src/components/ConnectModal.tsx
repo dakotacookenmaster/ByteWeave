@@ -20,7 +20,7 @@ const style = {
 
 export default function ConnectModal(props: { receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, setConnectionSelection: Function, handleCompleteConnect: React.MouseEventHandler<HTMLButtonElement> }) {
     const { isOpen, setIsOpen, handleCompleteConnect, receivingGate, setConnectionSelection } = props
-    const handleClose = () => setIsOpen(false);
+    const handleClose = () => setIsOpen(false)
 
     return (
         <div>
@@ -35,8 +35,12 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                         <FormLabel id="receiving-pins">Receiving Pins</FormLabel>
                         <RadioGroup
                             aria-labelledby="receiving-pins"
-                            defaultValue={0}
                             name="receiving-pins"
+                            defaultValue={receivingGate?.inputs.map((input, index) => {
+                                if(!input.gate) {
+                                    return `${index}`
+                                }
+                            })[0]}
                             onChange={(event) => {
                                 const { value } = event.target
                                 setConnectionSelection((prevConnectionSelection: any) => {
@@ -49,13 +53,13 @@ export default function ConnectModal(props: { receivingGate: Gate | undefined, i
                         >
                             {
                                 receivingGate?.inputs.map((input, index) => {
-                                    if (!input) {
+                                    if (!input.gate) {
                                         return (
                                             <FormControlLabel
                                                 key={`input-connection-${index}`}
-                                                value={index}
+                                                value={`${index}`}
                                                 control={<Radio />}
-                                                label={`Input #${index}`}
+                                                label={input.label.trim() !== "" ? input.label : `Input #${index}`}
                                             />
                                         )
                                     }

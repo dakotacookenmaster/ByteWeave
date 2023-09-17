@@ -57,7 +57,7 @@ const PrimaryWindow = () => {
     to: undefined,
   })
   const [_, setConnectionSelection] = React.useState<{ input: undefined | number }>({
-    input: 0
+    input: undefined
   })
   const [rightClickContextGate, setRightClickContextGate] = React.useState({
     id: -1,
@@ -213,8 +213,11 @@ const PrimaryWindow = () => {
       }
       gate.dependencies = gate.dependencies.filter(dependency => {
         dependency.inputs = dependency.inputs.map(input => {
-          if (input?.id === gate.id) {
-            return undefined
+          if (input?.gate?.id === gate.id) {
+            return {
+              ...input,
+              gate: undefined,
+            }
           }
           return input
         })
@@ -257,8 +260,11 @@ const PrimaryWindow = () => {
 
       gate.dependencies = gate.dependencies.filter((dependency) => {
         dependency.inputs = dependency.inputs.map(input => {
-          if (input?.id === gate.id) {
-            return undefined
+          if (input?.gate?.id === gate.id) {
+            return {
+              ...input,
+              gate: undefined,
+            }
           }
           return input
         })
@@ -267,8 +273,8 @@ const PrimaryWindow = () => {
       })
 
       gate.inputs = gate.inputs.map(input => {
-        if (input) {
-          input.dependencies = input?.dependencies.filter(dependency => {
+        if (input.gate) {
+          input.gate.dependencies = input.gate.dependencies.filter(dependency => {
             return dependency.id !== gate.id
           })
         }
@@ -368,7 +374,7 @@ const PrimaryWindow = () => {
 
               if (inputtingGate && receivingGate) {
                 inputtingGate.dependencies.push(receivingGate)
-                receivingGate.inputs[(prevConnectionSelection.input as number)] = inputtingGate
+                receivingGate.inputs[(prevConnectionSelection.input as number)].gate = inputtingGate
               }
               return copyPrevGates
             })
@@ -401,7 +407,7 @@ const PrimaryWindow = () => {
         return
       }
 
-      if (receivingGate.inputs.filter(v => v).length === receivingGate.maxInputs) {
+      if (receivingGate.inputs.filter(v => v.gate).length === receivingGate.maxInputs) {
         return
       }
 
@@ -516,7 +522,7 @@ const PrimaryWindow = () => {
         )}
 
       </List>
-      <Toolbar sx={{paddingBottom: "10px", position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
+      <Toolbar sx={{ paddingBottom: "10px", position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
           Designed by Dakota Cookenmaster
         </Typography>
@@ -727,10 +733,10 @@ const PrimaryWindow = () => {
                                   "15px" : gate instanceof NotGate || gate instanceof OutputGate ?
                                     "28px" : gate instanceof SevenSegmentDisplay ?
                                       "-4px" : "0px",
-                                background: input?.output ? "green" : "red",
+                                background: input?.gate?.output ? "green" : "red",
                               }}
                               className="input-output">
-                              {input?.output ? "1" : "0"}
+                              {input?.gate?.output ? "1" : "0"}
                             </div>
                           </ArcherElement>
                         )
@@ -741,7 +747,7 @@ const PrimaryWindow = () => {
                           key={`gate-${gate.id}-output`}
                           relations={gate.dependencies.map(dependency => {
                             return {
-                              targetId: `gate-${dependency.id}-input${dependency.inputs.findIndex(input => input?.id === gate.id)}`,
+                              targetId: `gate-${dependency.id}-input${dependency.inputs.findIndex(input => input?.gate?.id === gate.id)}`,
                               targetAnchor: 'left',
                               sourceAnchor: 'right',
                               style: {
@@ -775,6 +781,22 @@ const PrimaryWindow = () => {
                         }}>
                           {gate.value}
                         </Box>
+                      )}
+                      {(
+                        (gate instanceof InputGate || gate instanceof OutputGate) && (
+                          <Box sx={{
+                            background: theme.palette.primary.main,
+                            display: "flex",
+                            padding: "5px 0px",
+                            justifyContent: "center",
+                            fontWeight: "bold",
+                            borderRadius: "10px",
+                            position: "relative",
+                            top: gate instanceof InputGate ? "-60px" : "-82px",
+                          }}>{
+                            gate.label 
+                          }</Box>
+                        )
                       )}
                     </Paper>
                   </Box>
