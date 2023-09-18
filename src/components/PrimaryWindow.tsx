@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
 import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay, TwoInputGate } from '../helpers/Gates';
-import { Button, Paper, useMediaQuery } from '@mui/material';
+import { Button, Paper, Switch, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
 import { cloneDeep, isEqual } from 'lodash';
 import nextChar from '../helpers/NextLetter';
@@ -326,6 +326,7 @@ const PrimaryWindow = () => {
         newGate
       ]
     })
+    setMobileOpen(false)
   }
 
   React.useEffect(() => {
@@ -410,7 +411,7 @@ const PrimaryWindow = () => {
       })
 
       setDefaultPinNumber(receivingGate.inputs.map((v, i) => {
-        if(v.gate === undefined) {
+        if (v.gate === undefined) {
           return i
         }
       }).filter(v => v !== undefined)[0])
@@ -673,19 +674,6 @@ const PrimaryWindow = () => {
                     className="handle"
                     ref={ref}
                     key={`box-${gate.id}`}
-                    onClick={() => {
-                      handleInitiateConnect(gate.id)
-                    }}
-                    onContextMenu={(event) => {
-                      setRightClickContextGate({
-                        id: gate.id,
-                        type: gate.type,
-                        output: Boolean(gate.output)
-                      })
-                      handleRightClick(event)
-                    }}
-                    onTouchStart={(event) => handleTouchStart(event, gate)}
-                    onTouchMove={() => handleTouchMove()}
                     sx={{
                       width: "80px",
                       height: "80px",
@@ -713,7 +701,21 @@ const PrimaryWindow = () => {
                         backgroundSize: "contain",
                         transform: "rotate(180deg)"
                       }
-                    } : {}}>
+                    } : {}}
+                      onClick={() => {
+                        handleInitiateConnect(gate.id)
+                      }}
+                      onContextMenu={(event) => {
+                        setRightClickContextGate({
+                          id: gate.id,
+                          type: gate.type,
+                          output: Boolean(gate.output)
+                        })
+                        handleRightClick(event)
+                      }}
+                      onTouchStart={(event) => handleTouchStart(event, gate)}
+                      onTouchMove={() => handleTouchMove()}
+                    >
                       {(gate.inputs.map((input, index) => {
                         return (
                           <ArcherElement
@@ -777,10 +779,10 @@ const PrimaryWindow = () => {
                           {gate.value}
                         </Box>
                       )}
-                      {(
+                      {
                         (gate instanceof InputGate || gate instanceof OutputGate) && (
                           <Box sx={{
-                            background: theme.palette.primary.main,
+                            background: theme.palette.primary.dark,
                             display: "flex",
                             padding: "5px 0px",
                             justifyContent: "center",
@@ -791,9 +793,17 @@ const PrimaryWindow = () => {
                           }}>{
                               gate.label
                             }</Box>
-                        )
-                      )}
+                        )}
                     </Paper>
+                    {
+                      (gate instanceof InputGate) && (
+                        <Switch sx={{
+                          position: "absolute",
+                          zIndex: "1000",
+                          top: "80px",
+                          left: "10px",
+                        }} size="medium" color={gate.output ? "success" : "error"} checked={gate.output} onClick={() => toggleInput(gate.id)} onTouchStart={() => toggleInput(gate.id)} />
+                      )}
                   </Box>
                 </Draggable>
               )
