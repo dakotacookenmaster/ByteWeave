@@ -631,7 +631,7 @@ const PrimaryWindow = () => {
         }}
       />
       )}
-      <Box onClick={(event) => setSelected(-1)} sx={{ display: 'flex', width: "100vw" }}>
+      <Box onClick={() => setSelected(-1)} sx={{ display: 'flex', width: "100vw" }}>
         <CssBaseline />
         <AppBar
           position="fixed"
