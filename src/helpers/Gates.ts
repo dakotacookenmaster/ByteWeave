@@ -58,7 +58,7 @@ class TwoInputGate {
     constructor(
         public imgSrc: string,
         public id: number,
-        public defaultPlacement: [number, number] = [0, 0]
+        public defaultPlacement: [number, number] = [-1, -1]
     ) { }
     decide(): void { }
     autoGrader(visited: number[]): void {
@@ -118,7 +118,7 @@ class NotGate implements Gate {
     constructor(
         public imgSrc: string,
         public id: number,
-        public defaultPlacement: [number, number] = [0, 0]
+        public defaultPlacement: [number, number] = [-1, -1]
     ) { }
     decide(): void {
         this.output = !(this.inputs[0]?.gate?.output)
@@ -144,7 +144,7 @@ class InputGate implements Gate, Labeled {
         public imgSrc: string,
         public id: number,
         public label: string,
-        public defaultPlacement: [number, number] = [0, 0]
+        public defaultPlacement: [number, number] = [-1, -1]
     ) { }
 
     dependencies: Gate[] = []
@@ -177,7 +177,7 @@ class OutputGate implements Gate, Labeled {
         public imgSrc: string,
         public id: number,
         public label: string,
-        public defaultPlacement: [number, number] = [0, 0]
+        public defaultPlacement: [number, number] = [-1, -1]
     ) { }
 
     decide(): void {
@@ -223,7 +223,7 @@ class SevenSegmentDisplay implements Gate {
     constructor(
         public id: number,
         public value: string,
-        public defaultPlacement: [number, number] = [0, 0]
+        public defaultPlacement: [number, number] = [-1, -1]
     ) { }
     decide(): void {
         const string = this.inputs.reduce((accumulator, input) => {

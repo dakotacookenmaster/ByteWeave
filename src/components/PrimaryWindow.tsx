@@ -64,18 +64,22 @@ const PrimaryWindow = () => {
   const [timer, setTimer] = React.useState<number | null>()
   const isMobile = useMediaQuery("(max-width: 1000px)")
   const [defaultPinNumber, setDefaultPinNumber] = React.useState<number | undefined>(undefined)
+  const [currentlyHeld, setCurrentlyHeld] = React.useState<number | undefined>(undefined)
+  const boxRef = React.useRef<null | HTMLElement>(null)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   React.useEffect(() => {
-    if (selected !== -1) {
-      document.body.style.cursor = "crosshair"
-    } else {
-      document.body.style.cursor = "default"
+    if(boxRef.current) {
+      if (selected !== -1 || currentlyHeld !== undefined) {
+        boxRef.current.style.cursor = "crosshair"
+      } else {
+        boxRef.current.style.cursor = "default"
+      }
     }
-  }, [selected])
+  }, [selected, currentlyHeld])
 
   const handleCloseConnectModal = () => {
     setViewConnectModal(false)
@@ -285,6 +289,11 @@ const PrimaryWindow = () => {
   }
 
   const handleAddGate = (type: GateType) => {
+    if(currentlyHeld !== undefined) {
+      return
+    }
+    setCurrentlyHeld(id)
+    enqueueSnackbar("Click or tap anywhere to place your new gate.", { variant: "info" })
     setGates(prevGates => {
       let newGate: any
 
@@ -330,6 +339,20 @@ const PrimaryWindow = () => {
   }
 
   React.useEffect(() => {
+    const escHandler = (event: KeyboardEvent) => {
+      if(event.key === "Escape") {
+        setCurrentlyHeld(undefined)
+      }
+    }
+
+    document.addEventListener("keydown", escHandler)
+
+    return () => {
+      document.removeEventListener("keydown", escHandler)
+    }
+  }, [])
+
+  React.useEffect(() => {
     setGates(_ => {
       let newId = id
       let newLabel = "A"
@@ -358,6 +381,53 @@ const PrimaryWindow = () => {
 
   const handleDrag = () => {
     (archerContainerRef as any).current?.refreshScreen()
+  }
+
+  const newGateClickToPlace = (event: MouseEvent) => {
+    setCurrentlyHeld(prevCurrentlyHeld => {
+      if (currentlyHeld !== undefined) {
+        setGates(prevGates => {
+          const copyPrevGates = cloneDeep(prevGates)
+          const gate = copyPrevGates.find(gate => gate.id === currentlyHeld)
+          if (gate) {
+            gate.defaultPlacement = [
+              isMobile ? event.clientX - 80 : event.clientX - drawerWidth - 80,
+              event.clientY - 165,
+            ]
+          }
+
+          return copyPrevGates
+        })
+
+        enqueueSnackbar("Gate placed!", { variant: "success" })
+        return undefined
+      }
+
+      return prevCurrentlyHeld
+    })
+  }
+
+  const newGateClickToPlaceTouch = (event: TouchEvent) => {
+    setCurrentlyHeld(prevCurrentlyHeld => {
+      if (currentlyHeld !== undefined) {
+        setGates(prevGates => {
+          const copyPrevGates = cloneDeep(prevGates)
+          const gate = copyPrevGates.find(gate => gate.id === currentlyHeld)
+          if (gate) {
+            gate.defaultPlacement = [
+              isMobile ? event.touches[0].clientX - 80 : event.touches[0].clientX - drawerWidth - 80,
+              event.touches[0].clientY - 158,
+            ]
+          }
+
+          return copyPrevGates
+        })
+
+        return undefined
+      }
+
+      return prevCurrentlyHeld
+    })
   }
 
   const handleCompleteConnect = (pinNumber: any) => {
@@ -438,7 +508,7 @@ const PrimaryWindow = () => {
       <List sx={{ overflow: "auto", marginBottom: "0px", maxHeight: "calc(100vh - 271px)" }}>
         {checkGatesInQuestion("AND") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.AND)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-and.png" alt="logic-gates-and" />
               </ListItemIcon>
@@ -448,7 +518,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("OR") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.OR)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-or.png" alt="logic-gates-or" />
               </ListItemIcon>
@@ -458,7 +528,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("NOT") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.NOT)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-not.png" alt="logic-gates-not" />
               </ListItemIcon>
@@ -468,7 +538,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("NAND") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.NAND)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nand.png" alt="logic-gates-nand" />
               </ListItemIcon>
@@ -478,7 +548,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("NOR") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.NOR)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nor.png" alt="logic-gates-nor" />
               </ListItemIcon>
@@ -488,7 +558,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("INPUT") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.INPUT)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" height="50px" src="https://img.icons8.com/nolan/96/login-rounded-right.png" alt="login-rounded-right" />
               </ListItemIcon>
@@ -498,7 +568,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("OUTPUT") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.OUTPUT)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50px" className="output-right" height="50px" src="https://img.icons8.com/nolan/96/logout-rounded-left.png" alt="logout-rounded" />
               </ListItemIcon>
@@ -508,7 +578,7 @@ const PrimaryWindow = () => {
         )}
         {checkGatesInQuestion("SEVEN_SEGMENT_DISPLAY") && (
           <ListItem disablePadding onClick={() => handleAddGate(GateType.SEVEN_SEGMENT_DISPLAY)}>
-            <ListItemButton>
+            <ListItemButton disabled={currentlyHeld !== undefined}>
               <ListItemIcon>
                 <img width="50" height="50" src="https://img.icons8.com/dusk/96/display.png" alt="display" />
               </ListItemIcon>
@@ -561,7 +631,7 @@ const PrimaryWindow = () => {
         }}
       />
       )}
-      <Box onClick={() => setSelected(-1)} sx={{ display: 'flex', width: "100vw" }}>
+      <Box onClick={(event) => setSelected(-1)} sx={{ display: 'flex', width: "100vw" }}>
         <CssBaseline />
         <AppBar
           position="fixed"
@@ -637,6 +707,14 @@ const PrimaryWindow = () => {
         </Box>
         <Box
           component="main"
+          ref={boxRef}
+          onClick={(event) => {
+            newGateClickToPlace(event as any)
+          }}
+          onTouchStart={(event) => {
+            console.log("Firing!")
+            newGateClickToPlaceTouch(event as any)
+          }}
           sx={{
             display: "block",
             [theme.breakpoints.down("sm")]: {
@@ -655,158 +733,161 @@ const PrimaryWindow = () => {
           {
             gates.map(gate => {
               const ref = React.createRef<HTMLElement>()
-              return (
-                <Draggable
-                  nodeRef={ref}
-                  axis="both"
-                  bounds="parent"
-                  key={`gate-${gate.id}`}
-                  handle=".handle"
-                  defaultPosition={{
-                    x: gate.defaultPlacement[0],
-                    y: gate.defaultPlacement[1],
-                  }}
-                  grid={[1, 1]}
-                  scale={1}
-                  onDrag={handleDrag}
-                >
-                  <Box
-                    className="handle"
-                    ref={ref}
-                    key={`box-${gate.id}`}
-                    sx={{
-                      width: "80px",
-                      height: "80px",
-                      border: `solid ${selected === gate.id ? `3px ${green["A400"]}` : `1px ${theme.palette.primary.main}`}`,
-                      borderRadius: "5px",
-                      position: "absolute",
-                      "&:hover": {
-                        cursor: selected === -1 ? "pointer" : "crosshair"
-                      },
+              console.log(gate.defaultPlacement)
+              if (gate.defaultPlacement[0] >= 0 && gate.defaultPlacement[1] >= 0) {
+                return (
+                  <Draggable
+                    nodeRef={ref}
+                    axis="both"
+                    bounds="parent"
+                    key={`gate-${gate.id}`}
+                    handle=".handle"
+                    defaultPosition={{
+                      x: gate.defaultPlacement[0],
+                      y: gate.defaultPlacement[1],
                     }}
+                    grid={[1, 1]}
+                    scale={1}
+                    onDrag={handleDrag}
                   >
-                    <Paper elevation={9} component={"div"} style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "relative",
-                      background: gate.type === GateType.OUTPUT || gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "none" : `url("${gate.imgSrc}")`,
-                      backgroundSize: gate.type === GateType.OUTPUT || gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "" : "cover",
-                    }} sx={(gate.type === GateType.OUTPUT) ? {
-                      "&::before": {
-                        content: '""',
+                    <Box
+                      className="handle"
+                      ref={ref}
+                      key={`box-${gate.id}`}
+                      sx={{
+                        width: "80px",
+                        height: "80px",
+                        border: `solid ${selected === gate.id ? `3px ${green["A400"]}` : `1px ${theme.palette.primary.main}`}`,
+                        borderRadius: "5px",
                         position: "absolute",
+                        "&:hover": {
+                          cursor: (selected === -1 || currentlyHeld !== undefined) ? "pointer" : "crosshair"
+                        },
+                      }}
+                    >
+                      <Paper elevation={9} component={"div"} style={{
                         width: "100%",
                         height: "100%",
-                        background: `url("${gate.imgSrc}")`,
-                        backgroundSize: "contain",
-                        transform: "rotate(180deg)"
-                      }
-                    } : {}}
-                      onClick={() => {
-                        handleInitiateConnect(gate.id)
-                      }}
-                      onContextMenu={(event) => {
-                        setRightClickContextGate({
-                          id: gate.id,
-                          type: gate.type,
-                          output: Boolean(gate.output)
-                        })
-                        handleRightClick(event)
-                      }}
-                      onTouchStart={(event) => handleTouchStart(event, gate)}
-                      onTouchMove={() => handleTouchMove()}
-                    >
-                      {(gate.inputs.map((input, index) => {
-                        return (
+                        position: "relative",
+                        background: gate.type === GateType.OUTPUT || gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "none" : `url("${gate.imgSrc}")`,
+                        backgroundSize: gate.type === GateType.OUTPUT || gate.type === GateType.SEVEN_SEGMENT_DISPLAY ? "" : "cover",
+                      }} sx={(gate.type === GateType.OUTPUT) ? {
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          width: "100%",
+                          height: "100%",
+                          background: `url("${gate.imgSrc}")`,
+                          backgroundSize: "contain",
+                          transform: "rotate(180deg)"
+                        }
+                      } : {}}
+                        onClick={() => {
+                          handleInitiateConnect(gate.id)
+                        }}
+                        onContextMenu={(event) => {
+                          setRightClickContextGate({
+                            id: gate.id,
+                            type: gate.type,
+                            output: Boolean(gate.output)
+                          })
+                          handleRightClick(event)
+                        }}
+                        onTouchStart={(event) => handleTouchStart(event, gate)}
+                        onTouchMove={() => handleTouchMove()}
+                      >
+                        {(gate.inputs.map((input, index) => {
+                          return (
+                            <ArcherElement
+                              id={`gate-${gate.id}-input${index}`}
+                              key={`gate-${gate.id}-input${index}`}
+                            >
+                              <div
+                                style={{
+                                  position: "relative",
+                                  left: "-28px",
+                                  top: gate instanceof TwoInputGate ?
+                                    "15px" : gate instanceof NotGate || gate instanceof OutputGate ?
+                                      "28px" : gate instanceof SevenSegmentDisplay ?
+                                        "-4px" : "0px",
+                                  background: input?.gate?.output ? "green" : "red",
+                                }}
+                                className="input-output">
+                                {input?.gate?.output ? "1" : "0"}
+                              </div>
+                            </ArcherElement>
+                          )
+                        }))}
+                        {(gate.type !== GateType.SEVEN_SEGMENT_DISPLAY) && (
                           <ArcherElement
-                            id={`gate-${gate.id}-input${index}`}
-                            key={`gate-${gate.id}-input${index}`}
+                            id={`gate-${gate.id}-output`}
+                            key={`gate-${gate.id}-output`}
+                            relations={gate.dependencies.map(dependency => {
+                              return {
+                                targetId: `gate-${dependency.id}-input${dependency.inputs.findIndex(input => input?.gate?.id === gate.id)}`,
+                                targetAnchor: 'left',
+                                sourceAnchor: 'right',
+                                style: {
+                                  strokeColor: gate.output ? "#00ff00" : "#ff0000",
+                                  endMarker: false,
+                                }
+                              }
+                            })}
                           >
                             <div
                               style={{
                                 position: "relative",
-                                left: "-28px",
-                                top: gate instanceof TwoInputGate ?
-                                  "15px" : gate instanceof NotGate || gate instanceof OutputGate ?
-                                    "28px" : gate instanceof SevenSegmentDisplay ?
-                                      "-4px" : "0px",
-                                background: input?.gate?.output ? "green" : "red",
+                                top: gate instanceof InputGate ?
+                                  "30px" : gate instanceof NotGate || gate instanceof OutputGate ?
+                                    "8px" : "-15px",
+                                left: "85px",
+                                background: gate.output ? "green" : "red",
                               }}
                               className="input-output">
-                              {input?.gate?.output ? "1" : "0"}
+                              {gate.output ? "1" : "0"}
                             </div>
                           </ArcherElement>
-                        )
-                      }))}
-                      {(gate.type !== GateType.SEVEN_SEGMENT_DISPLAY) && (
-                        <ArcherElement
-                          id={`gate-${gate.id}-output`}
-                          key={`gate-${gate.id}-output`}
-                          relations={gate.dependencies.map(dependency => {
-                            return {
-                              targetId: `gate-${dependency.id}-input${dependency.inputs.findIndex(input => input?.gate?.id === gate.id)}`,
-                              targetAnchor: 'left',
-                              sourceAnchor: 'right',
-                              style: {
-                                strokeColor: gate.output ? "#00ff00" : "#ff0000",
-                                endMarker: false,
-                              }
-                            }
-                          })}
-                        >
-                          <div
-                            style={{
-                              position: "relative",
-                              top: gate instanceof InputGate ?
-                                "30px" : gate instanceof NotGate || gate instanceof OutputGate ?
-                                  "8px" : "-15px",
-                              left: "85px",
-                              background: gate.output ? "green" : "red",
-                            }}
-                            className="input-output">
-                            {gate.output ? "1" : "0"}
-                          </div>
-                        </ArcherElement>
-                      )}
-                      {gate.type === GateType.SEVEN_SEGMENT_DISPLAY && (
-                        <Box sx={{
-                          fontFamily: "DSEG7-Modern",
-                          fontSize: "65px",
-                          position: "absolute",
-                          top: "-10px",
-                          left: "13px"
-                        }}>
-                          {gate.value}
-                        </Box>
-                      )}
-                      {
-                        (gate instanceof InputGate || gate instanceof OutputGate) && (
-                          <Box sx={{
-                            background: theme.palette.primary.dark,
-                            display: "flex",
-                            padding: "5px 0px",
-                            justifyContent: "center",
-                            fontWeight: "bold",
-                            borderRadius: "10px",
-                            position: "relative",
-                            top: gate instanceof InputGate ? "-60px" : "-82px",
-                          }}>{
-                              gate.label
-                            }</Box>
                         )}
-                    </Paper>
-                    {
-                      (gate instanceof InputGate) && (
-                        <Switch sx={{
-                          position: "absolute",
-                          zIndex: "1000",
-                          top: "80px",
-                          left: "10px",
-                        }} size="medium" color={gate.output ? "success" : "error"} checked={gate.output} onClick={() => toggleInput(gate.id)} onTouchStart={() => toggleInput(gate.id)} />
-                      )}
-                  </Box>
-                </Draggable>
-              )
+                        {gate.type === GateType.SEVEN_SEGMENT_DISPLAY && (
+                          <Box sx={{
+                            fontFamily: "DSEG7-Modern",
+                            fontSize: "65px",
+                            position: "absolute",
+                            top: "-10px",
+                            left: "13px"
+                          }}>
+                            {gate.value}
+                          </Box>
+                        )}
+                        {
+                          (gate instanceof InputGate || gate instanceof OutputGate) && (
+                            <Box sx={{
+                              background: theme.palette.primary.dark,
+                              display: "flex",
+                              padding: "5px 0px",
+                              justifyContent: "center",
+                              fontWeight: "bold",
+                              borderRadius: "10px",
+                              position: "relative",
+                              top: gate instanceof InputGate ? "-60px" : "-82px",
+                            }}>{
+                                gate.label
+                              }</Box>
+                          )}
+                      </Paper>
+                      {
+                        (gate instanceof InputGate) && (
+                          <Switch sx={{
+                            position: "absolute",
+                            zIndex: "1000",
+                            top: "80px",
+                            left: "10px",
+                          }} size="medium" color={gate.output ? "success" : "error"} checked={gate.output} onClick={() => toggleInput(gate.id)} onTouchStart={() => toggleInput(gate.id)} />
+                        )}
+                    </Box>
+                  </Draggable>
+                )
+              }
             })}
           {data.questions.length > 1 && (
             <Stepper drawerWidth={drawerWidth} canMove={canMove} activeStep={activeStep} setActiveStep={setActiveStep} />
