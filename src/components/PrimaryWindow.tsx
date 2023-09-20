@@ -72,7 +72,7 @@ const PrimaryWindow = () => {
   };
 
   React.useEffect(() => {
-    if(boxRef.current) {
+    if (boxRef.current) {
       if (selected !== -1 || currentlyHeld !== undefined) {
         boxRef.current.style.cursor = "crosshair"
       } else {
@@ -289,7 +289,7 @@ const PrimaryWindow = () => {
   }
 
   const handleAddGate = (type: GateType) => {
-    if(currentlyHeld !== undefined) {
+    if (currentlyHeld !== undefined) {
       return
     }
     setCurrentlyHeld(id)
@@ -340,7 +340,7 @@ const PrimaryWindow = () => {
 
   React.useEffect(() => {
     const escHandler = (event: KeyboardEvent) => {
-      if(event.key === "Escape") {
+      if (event.key === "Escape") {
         setCurrentlyHeld(undefined)
       }
     }
@@ -383,7 +383,24 @@ const PrimaryWindow = () => {
     (archerContainerRef as any).current?.refreshScreen()
   }
 
-  const newGateClickToPlace = (event: MouseEvent) => {
+  const newGateClickToPlace = (event: any) => {
+    let xOffset = 0
+    let yOffset = 0
+
+    console.log(event.clientX, event.clientY)
+
+    if((event.clientX - 80 - (isMobile ? 0 : drawerWidth)) < 0) {
+      xOffset = 1
+    } else if (event.clientX > window.innerWidth - 100) {
+      xOffset = window.innerWidth - (isMobile ? 0 : drawerWidth) - 200
+    }
+
+    if(event.clientY < 100) {
+      yOffset = 1
+    } else if(event.clientY > window.innerHeight - 170) {
+      yOffset = window.innerHeight - 340
+    }
+
     setCurrentlyHeld(prevCurrentlyHeld => {
       if (currentlyHeld !== undefined) {
         setGates(prevGates => {
@@ -391,8 +408,8 @@ const PrimaryWindow = () => {
           const gate = copyPrevGates.find(gate => gate.id === currentlyHeld)
           if (gate) {
             gate.defaultPlacement = [
-              isMobile ? event.clientX - 80 : event.clientX - drawerWidth - 80,
-              event.clientY - 165,
+              xOffset ? xOffset : isMobile ? event.clientX - 80 : event.clientX - drawerWidth - 80,
+              yOffset ? yOffset : event.clientY - 165,
             ]
           }
 
@@ -400,29 +417,6 @@ const PrimaryWindow = () => {
         })
 
         enqueueSnackbar("Gate placed!", { variant: "success" })
-        return undefined
-      }
-
-      return prevCurrentlyHeld
-    })
-  }
-
-  const newGateClickToPlaceTouch = (event: TouchEvent) => {
-    setCurrentlyHeld(prevCurrentlyHeld => {
-      if (currentlyHeld !== undefined) {
-        setGates(prevGates => {
-          const copyPrevGates = cloneDeep(prevGates)
-          const gate = copyPrevGates.find(gate => gate.id === currentlyHeld)
-          if (gate) {
-            gate.defaultPlacement = [
-              isMobile ? event.touches[0].clientX - 80 : event.touches[0].clientX - drawerWidth - 80,
-              event.touches[0].clientY - 158,
-            ]
-          }
-
-          return copyPrevGates
-        })
-
         return undefined
       }
 
@@ -710,10 +704,6 @@ const PrimaryWindow = () => {
           ref={boxRef}
           onClick={(event) => {
             newGateClickToPlace(event as any)
-          }}
-          onTouchStart={(event) => {
-            console.log("Firing!")
-            newGateClickToPlaceTouch(event as any)
           }}
           sx={{
             display: "block",
