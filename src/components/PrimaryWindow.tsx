@@ -318,11 +318,9 @@ const PrimaryWindow = () => {
           break
         case GateType.INPUT:
           newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id, `IN: ${label}`)
-          setLabel(prevLabel => nextChar(prevLabel))
           break
         case GateType.OUTPUT:
           newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id, `OUT: ${label}`)
-          setLabel(prevLabel => nextChar(prevLabel))
           break
         case GateType.SEVEN_SEGMENT_DISPLAY:
           newGate = new SevenSegmentDisplay(id, "")
@@ -337,6 +335,12 @@ const PrimaryWindow = () => {
         ...prevGates,
         newGate
       ]
+    })
+    setLabel(prevLabel => {
+      if(type === GateType.INPUT || type === GateType.OUTPUT) {
+        return nextChar(prevLabel)
+      }
+      return prevLabel
     })
     setMobileOpen(false)
   }
@@ -392,17 +396,22 @@ const PrimaryWindow = () => {
 
     const { x, y, width, height } = boxRef.current!.getBoundingClientRect()
 
-    if((event.clientX - 80 - (isMobile ? 0 : drawerWidth)) < x) {
+    console.log(event.clientX, event.clientY)
+    console.log("X", y, "Y", y)
+
+    if(event.clientX - 80 < x) {
       xOffset = 1
     } else if (event.clientX + 80 > x + width) {
-      xOffset = event.clientX - (isMobile ? 0 : drawerWidth) - 160
+      xOffset = width - 165
     }
 
-    if(event.clientY < y + 10) {
-      yOffset = 10
-    } else if(event.clientY > height - 170) {
-      yOffset = height - 170
+    if(event.clientY < y) {
+      yOffset = 1
+    } else if(event.clientY > height) {
+      yOffset = height - 165
     }
+
+    console.log("xOffset", xOffset, "yOffset", yOffset)
 
     setCurrentlyHeld(prevCurrentlyHeld => {
       if (currentlyHeld !== undefined) {
@@ -412,8 +421,10 @@ const PrimaryWindow = () => {
           if (gate) {
             gate.defaultPlacement = [
               xOffset ? xOffset : isMobile ? event.clientX - 80 : event.clientX - drawerWidth - 80,
-              yOffset ? yOffset : event.clientY - 165,
+              yOffset ? yOffset : (event.clientY - 165 < 0) ? 1 : event.clientY - 165,
             ]
+
+            console.log(gate.defaultPlacement)
           }
 
           return copyPrevGates
@@ -504,8 +515,8 @@ const PrimaryWindow = () => {
       <Typography sx={{ fontWeight: "bold", marginTop: "10px", display: "block", width: "100%", textAlign: "center" }} variant="overline">Logical Gates</Typography>
       <List sx={{ overflow: "auto", marginBottom: "0px", maxHeight: "calc(100vh - 271px)" }}>
         {checkGatesInQuestion("AND") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.AND)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.AND)}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-and.png" alt="logic-gates-and" />
               </ListItemIcon>
@@ -514,8 +525,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("OR") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.OR)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.OR)}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-or.png" alt="logic-gates-or" />
               </ListItemIcon>
@@ -524,8 +535,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("NOT") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.NOT)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.NOT)}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-not.png" alt="logic-gates-not" />
               </ListItemIcon>
@@ -534,8 +545,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("NAND") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.NAND)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.NAND)}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nand.png" alt="logic-gates-nand" />
               </ListItemIcon>
@@ -544,8 +555,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("NOR") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.NOR)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.NOR)}>
               <ListItemIcon>
                 <img width="50px" src="https://img.icons8.com/nolan/96/logic-gates-nor.png" alt="logic-gates-nor" />
               </ListItemIcon>
@@ -554,8 +565,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("INPUT") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.INPUT)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.INPUT)}>
               <ListItemIcon>
                 <img width="50px" height="50px" src="https://img.icons8.com/nolan/96/login-rounded-right.png" alt="login-rounded-right" />
               </ListItemIcon>
@@ -564,8 +575,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("OUTPUT") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.OUTPUT)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.OUTPUT)}>
               <ListItemIcon>
                 <img width="50px" className="output-right" height="50px" src="https://img.icons8.com/nolan/96/logout-rounded-left.png" alt="logout-rounded" />
               </ListItemIcon>
@@ -574,8 +585,8 @@ const PrimaryWindow = () => {
           </ListItem>
         )}
         {checkGatesInQuestion("SEVEN_SEGMENT_DISPLAY") && (
-          <ListItem disablePadding onClick={() => handleAddGate(GateType.SEVEN_SEGMENT_DISPLAY)}>
-            <ListItemButton disabled={currentlyHeld !== undefined}>
+          <ListItem disablePadding>
+            <ListItemButton disabled={currentlyHeld !== undefined} onClick={() => handleAddGate(GateType.SEVEN_SEGMENT_DISPLAY)}>
               <ListItemIcon>
                 <img width="50" height="50" src="https://img.icons8.com/dusk/96/display.png" alt="display" />
               </ListItemIcon>
