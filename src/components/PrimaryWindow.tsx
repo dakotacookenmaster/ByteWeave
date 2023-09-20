@@ -33,6 +33,8 @@ import GradingIcon from '@mui/icons-material/Grading';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ConnectModal from './ConnectModal';
 import logo from "/byteweave-logo.png"
+import TruthTableModal from './TruthTableModal';
+import DatasetIcon from '@mui/icons-material/Dataset';
 
 const data: Assignment = untypedData
 
@@ -48,6 +50,7 @@ const PrimaryWindow = () => {
   const [label, setLabel] = React.useState("A")
   const [activeStep, setActiveStep] = React.useState(0)
   const [isOpen, setIsOpen] = React.useState(true)
+  const [isTruthTableOpen, setIsTruthTableOpen] = React.useState(false)
   const [canMove, setCanMove] = React.useState(false)
   const { enqueueSnackbar } = useSnackbar()
   const [anchorElement, setAnchorElement] = React.useState<HTMLElement | null>(null)
@@ -387,8 +390,6 @@ const PrimaryWindow = () => {
     let xOffset = 0
     let yOffset = 0
 
-    console.log(event.clientX, event.clientY)
-
     if((event.clientX - 80 - (isMobile ? 0 : drawerWidth)) < 0) {
       xOffset = 1
     } else if (event.clientX > window.innerWidth - 100) {
@@ -604,6 +605,11 @@ const PrimaryWindow = () => {
       }}
     >
       <BasicModal drawerWidth={drawerWidth} isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
+      {
+        data.questions[activeStep].answer.inputs.length > 0 && data.questions[activeStep].answer.outputs.length > 0 && (
+          <TruthTableModal drawerWidth={drawerWidth} isOpen={isTruthTableOpen} setIsOpen={setIsTruthTableOpen} truthTableData={data.questions[activeStep].answer.truthTable} />
+        )
+      }
       <ConnectModal defaultPinNumber={defaultPinNumber} setDefaultPinNumber={setDefaultPinNumber} isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         inputLength={data.questions[activeStep].answer.inputs.length}
@@ -648,6 +654,16 @@ const PrimaryWindow = () => {
               {data.questions[activeStep].instructions.title}
             </Typography>
             <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
+            {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (
+                isMobile ? (
+                  <>
+                    <IconButton color="primary" onClick={() => setIsTruthTableOpen(true)}>
+                      <DatasetIcon />
+                    </IconButton>
+                  </>
+                ) : (
+                  <Button onClick={() => setIsTruthTableOpen(true)} variant="outlined">Assignment Truth Table</Button>
+                ))}
               {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (
                 isMobile ? (
                   <>
@@ -723,7 +739,6 @@ const PrimaryWindow = () => {
           {
             gates.map(gate => {
               const ref = React.createRef<HTMLElement>()
-              console.log(gate.defaultPlacement)
               if (gate.defaultPlacement[0] >= 0 && gate.defaultPlacement[1] >= 0) {
                 return (
                   <Draggable
