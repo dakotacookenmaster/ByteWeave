@@ -392,19 +392,14 @@ const PrimaryWindow = () => {
 
     const { x, y, width, height } = boxRef.current!.getBoundingClientRect()
 
-    console.log("client:", event.clientX, event.clientY)
-    console.log(x, y, width, height)
-
     if((event.clientX - 80 - (isMobile ? 0 : drawerWidth)) < x) {
       xOffset = 1
-      console.log("X OFFSET:", xOffset)
     } else if (event.clientX + 80 > x + width) {
       xOffset = event.clientX - (isMobile ? 0 : drawerWidth) - 160
     }
 
     if(event.clientY < y + 10) {
       yOffset = 10
-      console.log("YOFFSET:", yOffset)
     } else if(event.clientY > height - 170) {
       yOffset = height - 170
     }
