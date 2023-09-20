@@ -390,16 +390,23 @@ const PrimaryWindow = () => {
     let xOffset = 0
     let yOffset = 0
 
-    if((event.clientX - 80 - (isMobile ? 0 : drawerWidth)) < 0) {
+    const { x, y, width, height } = boxRef.current!.getBoundingClientRect()
+
+    console.log("client:", event.clientX, event.clientY)
+    console.log(x, y, width, height)
+
+    if((event.clientX - 80 - (isMobile ? 0 : drawerWidth)) < x) {
       xOffset = 1
-    } else if (event.clientX > window.innerWidth - 100) {
-      xOffset = window.innerWidth - (isMobile ? 0 : drawerWidth) - 200
+      console.log("X OFFSET:", xOffset)
+    } else if (event.clientX + 80 > x + width) {
+      xOffset = event.clientX - (isMobile ? 0 : drawerWidth) - 160
     }
 
-    if(event.clientY < 100) {
-      yOffset = 1
-    } else if(event.clientY > window.innerHeight - 170) {
-      yOffset = window.innerHeight - 340
+    if(event.clientY < y + 10) {
+      yOffset = 10
+      console.log("YOFFSET:", yOffset)
+    } else if(event.clientY > height - 170) {
+      yOffset = height - 170
     }
 
     setCurrentlyHeld(prevCurrentlyHeld => {
