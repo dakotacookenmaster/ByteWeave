@@ -118,16 +118,13 @@ const PrimaryWindow = () => {
   React.useEffect(() => {
     const intervalId = setInterval(() => {
       setGates(prevGates => {
-        const copyPrevGates = cloneDeep(prevGates)
+        const copyPrevGates = [...prevGates]
         for (let gate of copyPrevGates) {
           gate.decide()
         }
-        if (isEqual(prevGates, copyPrevGates)) {
-          return prevGates
-        }
         return copyPrevGates
       })
-    }, 50)
+    }, 250)
 
     return () => {
       clearInterval(intervalId)
@@ -396,9 +393,6 @@ const PrimaryWindow = () => {
 
     const { x, y, width, height } = boxRef.current!.getBoundingClientRect()
 
-    console.log(event.clientX, event.clientY)
-    console.log("X", y, "Y", y)
-
     if(event.clientX - 80 < x) {
       xOffset = 1
     } else if (event.clientX + 80 > x + width) {
@@ -411,8 +405,6 @@ const PrimaryWindow = () => {
       yOffset = height - 165
     }
 
-    console.log("xOffset", xOffset, "yOffset", yOffset)
-
     setCurrentlyHeld(prevCurrentlyHeld => {
       if (currentlyHeld !== undefined) {
         setGates(prevGates => {
@@ -423,8 +415,6 @@ const PrimaryWindow = () => {
               xOffset ? xOffset : isMobile ? event.clientX - 80 : event.clientX - drawerWidth - 80,
               yOffset ? yOffset : (event.clientY - 165 < 0) ? 1 : event.clientY - 165,
             ]
-
-            console.log(gate.defaultPlacement)
           }
 
           return copyPrevGates
