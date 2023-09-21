@@ -20,7 +20,7 @@ import { ArcherContainer, ArcherElement } from 'react-archer';
 import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay, TwoInputGate } from '../helpers/Gates';
 import { Button, Paper, Switch, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
-import { cloneDeep, isEqual } from 'lodash';
+import { cloneDeep } from 'lodash';
 import nextChar from '../helpers/NextLetter';
 import untypedData from "../data/assignment.json"
 import { Assignment } from "../data/Assignment.type"
