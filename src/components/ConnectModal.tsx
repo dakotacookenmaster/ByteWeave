@@ -18,8 +18,8 @@ const style = {
     p: 4,
 };
 
-export default function ConnectModal(props: { defaultPinNumber: number | undefined, setDefaultPinNumber: Function, receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
-    const { isOpen, setIsOpen, handleCompleteConnect, setDefaultPinNumber, defaultPinNumber, receivingGate } = props
+export default function ConnectModal(props: { defaultPinNumber: any, receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
+    const { isOpen, setIsOpen, handleCompleteConnect, defaultPinNumber, receivingGate } = props
     const handleClose = () => setIsOpen(false)
 
     return (
@@ -29,6 +29,11 @@ export default function ConnectModal(props: { defaultPinNumber: number | undefin
                 onClose={handleClose}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
+                onKeyDown={(event) => {
+                    if(event.key === "Enter") {
+                        handleCompleteConnect(defaultPinNumber.current)
+                    }
+                }}
             >
                 <Box sx={style}>
                     <FormControl>
@@ -36,10 +41,10 @@ export default function ConnectModal(props: { defaultPinNumber: number | undefin
                         <RadioGroup
                             aria-labelledby="receiving-pins"
                             name="receiving-pins"
-                            value={defaultPinNumber}
+                            value={defaultPinNumber.current}
                             onChange={(event) => {
                                 const { value } = event.target
-                                setDefaultPinNumber(+value)
+                                defaultPinNumber.current = +value
                             }}
                         >
                             {
@@ -58,7 +63,7 @@ export default function ConnectModal(props: { defaultPinNumber: number | undefin
                             }
                         </RadioGroup>
                     </FormControl>
-                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={() => handleCompleteConnect(defaultPinNumber)}>Submit</Button>
+                    <Button variant="outlined" sx={{ marginTop: "30px auto" }} onClick={() => handleCompleteConnect(defaultPinNumber.current)}>Submit</Button>
                 </Box>
             </Modal>
         </div>

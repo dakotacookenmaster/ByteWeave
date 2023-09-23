@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material'
+import { createTheme, useMediaQuery } from '@mui/material'
 import './App.css'
 import PrimaryWindow from './components/PrimaryWindow'
 import { ThemeProvider } from '@emotion/react'
@@ -11,9 +11,10 @@ const theme = createTheme({
 })
 
 const App = () => {
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   return (
     <ThemeProvider theme={theme}>
-      <SnackbarProvider maxSnack={2} style={{ minWidth: "400px", maxWidth: "500px", width: "100%" }} anchorOrigin={{ horizontal: "center", vertical: "top" }}>
+      <SnackbarProvider maxSnack={2} style={{ minWidth: "400px" }} preventDuplicate={true} anchorOrigin={{ horizontal: "center", vertical: isMobile ? "bottom" : "top" }}>
         <PrimaryWindow />
       </SnackbarProvider>
     </ThemeProvider>
