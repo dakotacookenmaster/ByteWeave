@@ -350,6 +350,8 @@ const PrimaryWindow = () => {
       alreadyRendered.current = false
     } else {
       gates.current = []
+      label.current = "A"
+      id.current = 0
       const question = data.questions[activeStep]
       for (let i = 0; i < question.answer.inputs.length; i++) {
         const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
