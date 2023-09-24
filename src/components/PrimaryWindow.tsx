@@ -70,6 +70,7 @@ const PrimaryWindow = () => {
   const boxRef = React.useRef<null | HTMLElement>(null)
   const gates = React.useRef([] as Gate[])
   const [shouldRerender, setShouldRerender] = React.useState<boolean>(false)
+  const [addedNewGate, setAddedNewGate] = React.useState<boolean>(false)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -110,15 +111,26 @@ const PrimaryWindow = () => {
     if (shouldRerender) {
       setShouldRerender(false)
     }
-  }, [shouldRerender])
+
+    if(addedNewGate) {
+      setAddedNewGate(false)
+    }
+  }, [shouldRerender, addedNewGate])
 
   React.useEffect(() => {
     const intervalId = setInterval(() => {
+      let different = false
       for (let gate of gates.current) {
-        gate.decide()
+        if(gate.decide()) {
+          different = true
+        }
       }
-      setShouldRerender(true)
-    }, 200)
+
+      if(different) {
+        setShouldRerender(true)
+      }
+      
+    }, 100)
 
     return () => {
       clearInterval(intervalId)
@@ -312,6 +324,7 @@ const PrimaryWindow = () => {
     id.current++
     gates.current.push(newGate)
     setMobileOpen(false)
+    setAddedNewGate(true)
   }
 
   React.useEffect(() => {
@@ -320,6 +333,7 @@ const PrimaryWindow = () => {
         gates.current = gates.current.filter(g => g.id !== currentlyHeld.current)
         boxRef.current!.style.cursor = "default"
         currentlyHeld.current = undefined
+        setShouldRerender(true)
       }
     }
 
@@ -388,6 +402,7 @@ const PrimaryWindow = () => {
 
       boxRef.current!.style.cursor = "default"
       currentlyHeld.current = undefined
+      setAddedNewGate(true)
     }
   }
 
@@ -572,7 +587,7 @@ const PrimaryWindow = () => {
           <TruthTableModal drawerWidth={drawerWidth} isOpen={isTruthTableOpen} setIsOpen={setIsTruthTableOpen} truthTableData={data.questions[activeStep].answer.truthTable} />
         )
       }
-      <ConnectModal defaultPinNumber={defaultPinNumber} isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.current.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
+      <ConnectModal setShouldRerender={setShouldRerender} defaultPinNumber={defaultPinNumber} isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.current.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
         inputLength={data.questions[activeStep].answer.inputs.length}
         outputLength={data.questions[activeStep].answer.outputs.length}

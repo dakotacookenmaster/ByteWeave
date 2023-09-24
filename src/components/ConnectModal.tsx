@@ -18,8 +18,8 @@ const style = {
     p: 4,
 };
 
-export default function ConnectModal(props: { defaultPinNumber: any, receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
-    const { isOpen, setIsOpen, handleCompleteConnect, defaultPinNumber, receivingGate } = props
+export default function ConnectModal(props: { setShouldRerender: Function, defaultPinNumber: any, receivingGate: Gate | undefined, isOpen: boolean, setIsOpen: Function, handleCompleteConnect: Function }) {
+    const { isOpen, setIsOpen, handleCompleteConnect, setShouldRerender, defaultPinNumber, receivingGate } = props
     const handleClose = () => setIsOpen(false)
 
     return (
@@ -45,6 +45,7 @@ export default function ConnectModal(props: { defaultPinNumber: any, receivingGa
                             onChange={(event) => {
                                 const { value } = event.target
                                 defaultPinNumber.current = +value
+                                setShouldRerender(true)
                             }}
                         >
                             {
