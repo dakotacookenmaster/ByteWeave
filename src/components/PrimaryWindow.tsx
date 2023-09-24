@@ -65,12 +65,13 @@ const PrimaryWindow = () => {
   const [timer, setTimer] = React.useState<number | null>()
   const isMobile = useMediaQuery("(max-width: 1000px)")
   const isSM = useMediaQuery((theme: Theme) => theme.breakpoints.down("sm"))
-  const defaultPinNumber= React.useRef<number | undefined>(undefined)
+  const defaultPinNumber = React.useRef<number | undefined>(undefined)
   const currentlyHeld = React.useRef<number | undefined>(undefined)
   const boxRef = React.useRef<null | HTMLElement>(null)
   const gates = React.useRef([] as Gate[])
   const [shouldRerender, setShouldRerender] = React.useState<boolean>(false)
   const [addedNewGate, setAddedNewGate] = React.useState<boolean>(false)
+  const alreadyRendered = React.useRef(false)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -112,7 +113,7 @@ const PrimaryWindow = () => {
       setShouldRerender(false)
     }
 
-    if(addedNewGate) {
+    if (addedNewGate) {
       setAddedNewGate(false)
     }
   }, [shouldRerender, addedNewGate])
@@ -121,15 +122,15 @@ const PrimaryWindow = () => {
     const intervalId = setInterval(() => {
       let different = false
       for (let gate of gates.current) {
-        if(gate.decide()) {
+        if (gate.decide()) {
           different = true
         }
       }
 
-      if(different) {
+      if (different) {
         setShouldRerender(true)
       }
-      
+
     }, 100)
 
     return () => {
@@ -345,23 +346,30 @@ const PrimaryWindow = () => {
   }, [])
 
   React.useEffect(() => {
-    const question = data.questions[activeStep]
-    for (let i = 0; i < question.answer.inputs.length; i++) {
-      const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
-      gates.current.push(newGate)
-      id.current++
-      label.current = nextChar(label.current)
-    }
-    for (let i = 0; i < question.answer.outputs.length; i++) {
-      const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id.current, `OUT: ${label.current}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
-      gates.current.push(newGate)
-      id.current++
-      label.current = nextChar(label.current)
+    if (alreadyRendered.current) {
+      alreadyRendered.current = false
+    } else {
+      gates.current = []
+      const question = data.questions[activeStep]
+      for (let i = 0; i < question.answer.inputs.length; i++) {
+        const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
+        gates.current.push(newGate)
+        id.current++
+        label.current = nextChar(label.current)
+      }
+      for (let i = 0; i < question.answer.outputs.length; i++) {
+        const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id.current, `OUT: ${label.current}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
+        gates.current.push(newGate)
+        id.current++
+        label.current = nextChar(label.current)
+      }
+      alreadyRendered.current = true
+      setIsOpen(true)
+      document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
+      setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
     }
 
-    setIsOpen(true)
-    document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
-    setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
+
   }, [activeStep])
 
   const handleDrag = () => {
@@ -412,7 +420,7 @@ const PrimaryWindow = () => {
         const inputtingGate = gates.current.find(g => g.id === prevConnections.from)
         const receivingGate = gates.current.find(g => g.id === prevConnections.to)
 
-        if (inputtingGate && receivingGate && receivingGate.inputs.every(input => input.gate?.id !== inputtingGate.id )) {
+        if (inputtingGate && receivingGate && receivingGate.inputs.every(input => input.gate?.id !== inputtingGate.id)) {
           inputtingGate.dependencies.push(receivingGate)
           receivingGate.inputs[pinNumber].gate = inputtingGate
         }
@@ -452,7 +460,7 @@ const PrimaryWindow = () => {
       })
 
       defaultPinNumber.current = receivingGate.inputs.map((v, i) => {
-        if(v.gate === undefined) {
+        if (v.gate === undefined) {
           return i
         }
       }).filter(v => v !== undefined)[0]
