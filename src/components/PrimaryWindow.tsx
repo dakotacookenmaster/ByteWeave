@@ -71,7 +71,6 @@ const PrimaryWindow = () => {
   const gates = React.useRef([] as Gate[])
   const [shouldRerender, setShouldRerender] = React.useState<boolean>(false)
   const [addedNewGate, setAddedNewGate] = React.useState<boolean>(false)
-  const alreadyRendered = React.useRef(0)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -346,30 +345,25 @@ const PrimaryWindow = () => {
   }, [])
 
   React.useEffect(() => {
-    if (alreadyRendered.current !== 1) {
-      gates.current = []
-      console.log(gates.current)
-      label.current = "A"
-      const question = data.questions[activeStep]
-      for (let i = 0; i < question.answer.inputs.length; i++) {
-        const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
-        gates.current.push(newGate)
-        id.current++
-        label.current = nextChar(label.current)
-      }
-      for (let i = 0; i < question.answer.outputs.length; i++) {
-        const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id.current, `OUT: ${label.current}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
-        gates.current.push(newGate)
-        id.current++
-        label.current = nextChar(label.current)
-      }
-      console.log(gates.current)
-      setIsOpen(true)
-      document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
-      setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
+    gates.current = []
+    label.current = "A"
+    const question = data.questions[activeStep]
+    for (let i = 0; i < question.answer.inputs.length; i++) {
+      const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
+      gates.current.push(newGate)
+      id.current++
+      label.current = nextChar(label.current)
     }
-    alreadyRendered.current++
-
+    for (let i = 0; i < question.answer.outputs.length; i++) {
+      const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id.current, `OUT: ${label.current}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
+      gates.current.push(newGate)
+      id.current++
+      label.current = nextChar(label.current)
+    }
+    setIsOpen(true)
+    document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
+    setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
+    setShouldRerender(true)
   }, [activeStep])
 
   const handleDrag = () => {
