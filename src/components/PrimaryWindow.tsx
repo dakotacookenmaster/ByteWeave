@@ -71,7 +71,7 @@ const PrimaryWindow = () => {
   const gates = React.useRef([] as Gate[])
   const [shouldRerender, setShouldRerender] = React.useState<boolean>(false)
   const [addedNewGate, setAddedNewGate] = React.useState<boolean>(false)
-  const alreadyRendered = React.useRef(false)
+  const alreadyRendered = React.useRef(0)
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -127,7 +127,7 @@ const PrimaryWindow = () => {
         }
       }
 
-      if (different) {
+      if (different || gates.current.length === 0) {
         setShouldRerender(true)
       }
 
@@ -346,12 +346,10 @@ const PrimaryWindow = () => {
   }, [])
 
   React.useEffect(() => {
-    if (alreadyRendered.current) {
-      alreadyRendered.current = false
-    } else {
+    if (alreadyRendered.current !== 1) {
       gates.current = []
+      console.log(gates.current)
       label.current = "A"
-      id.current = 0
       const question = data.questions[activeStep]
       for (let i = 0; i < question.answer.inputs.length; i++) {
         const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
@@ -365,12 +363,12 @@ const PrimaryWindow = () => {
         id.current++
         label.current = nextChar(label.current)
       }
-      alreadyRendered.current = true
+      console.log(gates.current)
       setIsOpen(true)
       document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
       setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
     }
-
+    alreadyRendered.current++
 
   }, [activeStep])
 
