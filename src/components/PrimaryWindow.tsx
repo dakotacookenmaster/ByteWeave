@@ -361,7 +361,7 @@ const PrimaryWindow = () => {
       label.current = nextChar(label.current)
     }
     setIsOpen(true)
-    document.title = `Byteweave | ${data.questions[activeStep].instructions.title}`
+    document.title = `ByteWeave | ${data.questions[activeStep].instructions.title}`
     setCanMove(data.canSkipAnyQuestion || Boolean(data.questions[activeStep].canSkip))
     setShouldRerender(true)
   }, [activeStep])
@@ -478,7 +478,7 @@ const PrimaryWindow = () => {
         <img style={{ borderRadius: "20px", background: "white", width: "80%", padding: "20px" }} src={logo} alt="ByteWeave Logo" />
       </Toolbar>
       <Divider />
-      <Typography sx={{ fontWeight: "bold", marginTop: "10px", display: "block", width: "100%", textAlign: "center" }} variant="overline">Logical Gates</Typography>
+      <Typography sx={{ fontWeight: "bold", marginTop: "10px", display: "block", width: "100%", textAlign: "center" }} variant="overline">Logic Gates &amp; Components</Typography>
       <List sx={{ overflow: "auto", marginBottom: "0px", maxHeight: "calc(100vh - 271px)" }}>
         {checkGatesInQuestion("AND") && (
           <ListItem disablePadding>

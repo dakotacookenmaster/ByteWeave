@@ -43,7 +43,7 @@ export default function BasicModal(props: { drawerWidth: number, isOpen: boolean
                         <>
                             <br />
                             <Typography variant="h6" sx={{ marginBottom: "10px" }}>
-                                Provided Resources
+                                Resources
                             </Typography>
                         </>
                     )}
