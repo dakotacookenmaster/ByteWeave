@@ -349,13 +349,13 @@ const PrimaryWindow = () => {
     label.current = "A"
     const question = data.questions[activeStep]
     for (let i = 0; i < question.answer.inputs.length; i++) {
-      const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXPosition, question.answer.inputs[i].defaultYPosition])
+      const newGate = new InputGate("https://img.icons8.com/nolan/96/login-rounded-right.png", id.current, `IN: ${label.current}`, [question.answer.inputs[i].defaultXY[0], question.answer.inputs[i].defaultXY[1]])
       gates.current.push(newGate)
       id.current++
       label.current = nextChar(label.current)
     }
     for (let i = 0; i < question.answer.outputs.length; i++) {
-      const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id.current, `OUT: ${label.current}`, [question.answer.outputs[i].defaultXPosition, question.answer.outputs[i].defaultYPosition])
+      const newGate = new OutputGate("https://img.icons8.com/nolan/96/logout-rounded-left.png", id.current, `OUT: ${label.current}`, [question.answer.outputs[i].defaultXY[0], question.answer.outputs[i].defaultXY[1]])
       gates.current.push(newGate)
       id.current++
       label.current = nextChar(label.current)

@@ -14,12 +14,10 @@ export type Assignment = {
         canSkip?: boolean,
         answer: {
             inputs: {
-                defaultXPosition: number,
-                defaultYPosition: number
+                defaultXY: number[],
             }[],
             outputs: {
-                defaultXPosition: number,
-                defaultYPosition: number
+                defaultXY: number[]
             }[],
             truthTable: number[][][] | string[][][]
         }

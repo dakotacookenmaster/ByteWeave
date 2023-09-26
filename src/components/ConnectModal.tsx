@@ -22,6 +22,18 @@ export default function ConnectModal(props: { setShouldRerender: Function, defau
     const { isOpen, setIsOpen, handleCompleteConnect, setShouldRerender, defaultPinNumber, receivingGate } = props
     const handleClose = () => setIsOpen(false)
 
+    if(receivingGate) {
+        if(receivingGate.inputs.reduce((accumulator, input) => {
+            if(!input.gate) {
+                return accumulator + 1
+            }
+            return accumulator
+        }, 0) === 1) {
+            handleCompleteConnect(defaultPinNumber.current)
+            handleClose()
+        }
+    }
+
     return (
         <div>
             <Modal

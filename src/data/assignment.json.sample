@@ -1,16 +1,205 @@
 {
+    "assignmentName": "CPTR-108 Lab 5: Digital Logic",
     "canSkipAnyQuestion": true,
-    "gatesProvidedInEveryQuestion": [
-        "AND",
-        "OR",
-        "NOT",
-        "NAND",
-        "NOR",
-        "OUTPUT",
-        "SEVEN_SEGMENT_DISPLAY",
-        "INPUT"
-    ],
+    "gatesProvidedInEveryQuestion": [],
     "questions": [
+        {
+            "instructions": {
+                "title": "DeMorgan's OR",
+                "description": "Build a circuit with the same functionality as an OR gate using only AND and NOT gates.",
+                "resources": []
+            },
+            "gatesProvided": [
+                "AND",
+                "NOT"
+            ],
+            "answer": {
+                "inputs": [
+                    {
+                        "defaultXY": [
+                            0,
+                            100
+                        ]
+                    },
+                    {
+                        "defaultXY": [
+                            0,
+                            300
+                        ]
+                    }
+                ],
+                "outputs": [
+                    {
+                        "defaultXY": [
+                            400,
+                            150
+                        ]
+                    }
+                ],
+                "truthTable": [
+                    [
+                        [
+                            0,
+                            0
+                        ],
+                        [
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            0,
+                            1
+                        ],
+                        [
+                            1
+                        ]
+                    ],
+                    [
+                        [
+                            1,
+                            0
+                        ],
+                        [
+                            1
+                        ]
+                    ],
+                    [
+                        [
+                            1,
+                            1
+                        ],
+                        [
+                            1
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "instructions": {
+                "title": "Non-Primary RBG",
+                "description": "Inputs A, B, and C represent Red, Blue, and Green, respectively (note the unusual order, which doesn't actually make any difference in this problem, but I couldn't bring myself to put Blue anywhere other than B, and couldn't pass up the chance to bring up the Notorious R-B-G. :) Create a circuit that detects the presence of a non-primary color (i.e., a mix of at least 2 colors, possibly all 3) on the inputs.",
+                "resources": []
+            },
+            "gatesProvided": [
+                "AND",
+                "OR",
+                "NOT"
+            ],
+            "answer": {
+                "inputs": [
+                    {
+                        "defaultXY": [
+                            0,
+                            100
+                        ]
+                    },
+                    {
+                        "defaultXY": [
+                            0,
+                            300
+                        ]
+                    },
+                    {
+                        "defaultXY": [
+                            0,
+                            500
+                        ]
+                    }
+                ],
+                "outputs": [
+                    {
+                        "defaultXY": [
+                            400,
+                            300
+                        ]
+                    }
+                ],
+                "truthTable": [
+                    [
+                        [
+                            0,
+                            0,
+                            0
+                        ],
+                        [
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            0,
+                            0,
+                            1
+                        ],
+                        [
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            0,
+                            1,
+                            0
+                        ],
+                        [
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            0,
+                            1,
+                            1
+                        ],
+                        [
+                            1
+                        ]
+                    ],
+                    [
+                        [
+                            1,
+                            0,
+                            0
+                        ],
+                        [
+                            0
+                        ]
+                    ],
+                    [
+                        [
+                            1,
+                            0,
+                            1
+                        ],
+                        [
+                            1
+                        ]
+                    ],
+                    [
+                        [
+                            1,
+                            1,
+                            0
+                        ],
+                        [
+                            1
+                        ]
+                    ],
+                    [
+                        [
+                            1,
+                            1,
+                            1
+                        ],
+                        [
+                            1
+                        ]
+                    ]
+                ]
+            }
+        },
         {
             "instructions": {
                 "title": "You Finished!",
@@ -22,10 +211,22 @@
                 "inputs": [],
                 "outputs": [],
                 "truthTable": [
-                    [[], []],
-                    [[], []],
-                    [[], []],
-                    [[], []]
+                    [
+                        [],
+                        []
+                    ],
+                    [
+                        [],
+                        []
+                    ],
+                    [
+                        [],
+                        []
+                    ],
+                    [
+                        [],
+                        []
+                    ]
                 ]
             }
         }
