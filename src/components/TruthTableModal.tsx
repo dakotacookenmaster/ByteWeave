@@ -4,9 +4,14 @@ import Modal from '@mui/material/Modal';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, useTheme } from '@mui/material';
 import { useMediaQuery } from "@mui/material"
 import nextChar from '../helpers/NextLetter';
+import { Gate, GateType } from '../helpers/Gates';
+import { enqueueSnackbar } from 'notistack';
+import { cloneDeep } from 'lodash';
+import React from 'react';
 
-export default function TruthTableModal(props: { drawerWidth: number, isOpen: boolean, setIsOpen: Function, truthTableData: number[][][] | string[][][] }) {
+export default function TruthTableModal(props: { gates: Gate[], drawerWidth: number, isOpen: boolean, setIsOpen: Function, truthTableData: number[][][] | string[][][] }) {
     const { isOpen, setIsOpen, truthTableData, drawerWidth } = props
+    const gates = cloneDeep(props.gates)
     const handleClose = () => setIsOpen(false);
     const theme = useTheme()
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
@@ -24,6 +29,37 @@ export default function TruthTableModal(props: { drawerWidth: number, isOpen: bo
         boxShadow: 24,
         p: 4,
     };
+
+    const outputValues: boolean[][] = []
+
+    const inputs = gates.filter(gate => gate.type === GateType.INPUT).sort((a, b) => {
+        return a.id - b.id
+    })
+
+    const outputs = gates.filter(gate => gate.type === GateType.OUTPUT).sort((a, b) => {
+        return a.id - b.id
+    })
+
+    if (inputs.length !== truthTableData[0][0].length || outputs.length !== truthTableData[0][1].length) {
+        // the user didn't provide the right number of inputs or outputs (idk how they'd change this, but it's good to check)
+        return
+    }
+    for (let i = 0; i < truthTableData.length; i++) {
+        outputValues.push([])
+        for (let j = 0; j < inputs.length; j++) {
+            // set all of the inputs to their appropriate values for testing
+            inputs[j].output = Boolean(truthTableData[i][0][j])
+            try {
+                inputs[j].autoGrader([])
+            } catch (error) {
+                enqueueSnackbar("Cycles are not currently for automatic truth table generation.", { variant: "warning" })
+                return
+            }
+        }
+        for (let k = 0; k < outputs.length; k++) {
+            outputValues[i].push(outputs[k].output!)
+        }
+    }
 
     return (
         <div>
@@ -44,18 +80,28 @@ export default function TruthTableModal(props: { drawerWidth: number, isOpen: bo
                                 <TableRow>
                                     {
                                         [...Array(truthTableData[0][0].length)].map((_, index) => {
-                                            const output = <TableCell key={`table-head-input-${index}`}>Input {startingCharacter}</TableCell>
+                                            const output = <TableCell sx={{ textAlign: "center" }} key={`table-head-input-${index}`}>Input {startingCharacter}</TableCell>
                                             startingCharacter = nextChar(startingCharacter)
                                             return output
                                         })
                                     }
                                     {
                                         [...Array(truthTableData[0][1].length)].map((_, index) => {
-                                            const output = <TableCell key={`table-head-output-${index}`}>Output {startingCharacter}</TableCell>
+                                            const output = <TableCell colSpan={2} sx={{ textAlign: "center" }} key={`table-head-output-${index}`}>Output {startingCharacter}</TableCell>
                                             startingCharacter = nextChar(startingCharacter)
                                             return output
                                         })
                                     }
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell></TableCell>
+                                    <TableCell></TableCell>
+                                    <TableCell sx={{ textAlign: "center" }}>
+                                        Expected
+                                    </TableCell>
+                                    <TableCell sx={{ textAlign: "center" }}>
+                                        Actual
+                                    </TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -64,11 +110,21 @@ export default function TruthTableModal(props: { drawerWidth: number, isOpen: bo
                                     truthTableData.map((row, rowIndex) => {
                                         return (
                                             <TableRow key={`table-data-row-${rowIndex}`}>
-                                                {row.map(value => {
-                                                    return value.map((v, i) => {
-                                                        return <TableCell key={`table-row-${rowIndex}-value-${i}`}>{v}</TableCell>
+                                                {
+                                                    row[0].map((v, i) => {
+                                                        return <TableCell sx={{ textAlign: "center" }} key={`table-row-${rowIndex}-input-value-${i}`}>{v}</TableCell>
                                                     })
-                                                })
+                                                }
+                                                {
+                                                    row[1].map((v, i) => {
+                                                        const outputValue = outputValues[rowIndex][i] ? 1 : 0
+                                                        return (
+                                                            <React.Fragment key={`table-row-${rowIndex}-output-value-${i}`}>
+                                                                <TableCell sx={{ textAlign: "center", fontWeight: "bold" }}>{v}</TableCell>
+                                                                <TableCell sx={{ textAlign: "center", fontWeight: "bold", color: outputValue === v ? "green" : "red" }}>{outputValue}</TableCell>
+                                                            </React.Fragment>
+                                                        )
+                                                    })
                                                 }
                                             </TableRow>
                                         )

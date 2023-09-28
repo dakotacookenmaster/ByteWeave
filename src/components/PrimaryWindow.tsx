@@ -586,7 +586,7 @@ const PrimaryWindow = () => {
       <BasicModal drawerWidth={drawerWidth} isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
       {
         data.questions[activeStep].answer.inputs.length > 0 && data.questions[activeStep].answer.outputs.length > 0 && (
-          <TruthTableModal drawerWidth={drawerWidth} isOpen={isTruthTableOpen} setIsOpen={setIsTruthTableOpen} truthTableData={data.questions[activeStep].answer.truthTable} />
+          <TruthTableModal gates={gates.current} drawerWidth={drawerWidth} isOpen={isTruthTableOpen} setIsOpen={setIsTruthTableOpen} truthTableData={data.questions[activeStep].answer.truthTable} />
         )
       }
       <ConnectModal setShouldRerender={setShouldRerender} defaultPinNumber={defaultPinNumber} isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.current.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
