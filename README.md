@@ -13,6 +13,10 @@ ByteWeave is a web-based application that allows students to simulate digital ci
 - [Contributing](#contributing)
 - [License](#license)
 
+## Examples
+- [Free Roam](https://byteweave.dacoder.io/)
+- [Example Lab](https://lab5.dacoder.io/)
+
 ## Features
 
 - Simulate digital circuits in the browser.
