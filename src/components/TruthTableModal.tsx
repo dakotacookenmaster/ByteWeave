@@ -94,14 +94,23 @@ export default function TruthTableModal(props: { gates: Gate[], drawerWidth: num
                                     }
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell></TableCell>
-                                    <TableCell></TableCell>
-                                    <TableCell sx={{ textAlign: "center" }}>
-                                        Expected
-                                    </TableCell>
-                                    <TableCell sx={{ textAlign: "center" }}>
-                                        Actual
-                                    </TableCell>
+                                    {[...Array(inputs.length)].map((_, i) => {
+                                        return (
+                                            <TableCell key={i}></TableCell>
+                                        )
+                                    })}
+                                    {[...Array(outputs.length)].map((_, i) => {
+                                        return (
+                                            <React.Fragment key={i}>
+                                                <TableCell sx={{ textAlign: "center" }}>
+                                                    Expected
+                                                </TableCell>
+                                                <TableCell sx={{ textAlign: "center" }}>
+                                                    Actual
+                                                </TableCell>
+                                            </React.Fragment>
+                                        )
+                                    })}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
