@@ -4,6 +4,7 @@ ByteWeave is a web-based application that allows students to simulate digital ci
 
 ## Table of Contents
 
+- [Examples](#examples)
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
