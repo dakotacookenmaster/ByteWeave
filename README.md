@@ -2,6 +2,8 @@
 
 ByteWeave is a web-based application that allows students to simulate digital circuits using a variety of logic gates, including AND, OR, NOT, NAND, NOR, INPUT, OUTPUT, and Seven Segment Displays. Instructors can also create assignments with custom logic circuits that are automatically graded.
 
+![image](https://github.com/dakotacookenmaster/ByteWeave/assets/48303855/dc11ef74-e5d7-49d6-ad14-8bc4176d2026)
+
 ## Table of Contents
 
 - [Examples](#examples)
