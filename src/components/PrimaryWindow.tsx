@@ -18,7 +18,7 @@ import { Theme, useTheme } from '@mui/material/styles';
 import Draggable from 'react-draggable';
 import { ArcherContainer, ArcherElement } from 'react-archer';
 import { AndGate, InputGate, NandGate, NorGate, NotGate, OrGate, OutputGate, SevenSegmentDisplay, TwoInputGate } from '../helpers/Gates';
-import { Button, Paper, Switch, useMediaQuery } from '@mui/material';
+import { Paper, Switch, ToggleButton, ToggleButtonGroup, useMediaQuery } from '@mui/material';
 import { Gate, GateType } from '../helpers/Gates';
 import nextChar from '../helpers/NextLetter';
 import untypedData from "../data/assignment.json"
@@ -34,6 +34,9 @@ import ConnectModal from './ConnectModal';
 import logo from "/byteweave-logo.png"
 import TruthTableModal from './TruthTableModal';
 import DatasetIcon from '@mui/icons-material/Dataset';
+import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
+import InvertColorsOffIcon from '@mui/icons-material/InvertColorsOff';
+import InvertColorsIcon from '@mui/icons-material/InvertColors';
 
 const data: Assignment = untypedData
 
@@ -63,7 +66,6 @@ const PrimaryWindow = () => {
     output: false,
   })
   const [timer, setTimer] = React.useState<number | null>()
-  const isMobile = useMediaQuery("(max-width: 1000px)")
   const isSM = useMediaQuery((theme: Theme) => theme.breakpoints.down("sm"))
   const defaultPinNumber = React.useRef<number | undefined>(undefined)
   const currentlyHeld = React.useRef<number | undefined>(undefined)
@@ -71,6 +73,8 @@ const PrimaryWindow = () => {
   const gates = React.useRef([] as Gate[])
   const [shouldRerender, setShouldRerender] = React.useState<boolean>(false)
   const [addedNewGate, setAddedNewGate] = React.useState<boolean>(false)
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = React.useState<boolean>(false)
+  const [selectedColorMode, setSelectedColorMode] = React.useState<"default" | "colorblind">("default")
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -562,7 +566,7 @@ const PrimaryWindow = () => {
         )}
 
       </List>
-      <Toolbar sx={{ paddingBottom: "10px", position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "none" }}>
+      <Toolbar sx={{ paddingBottom: "10px", position: "fixed", display: "flex", justifyContent: "left", flexDirection: "column", gap: "10px", bottom: 0, width: `${drawerWidth - 1}px`, background: "theme.palette.primary.dark" }}>
         <Typography variant="subtitle1" sx={{ fontSize: "12px" }}>
           Designed by Dakota Cookenmaster
         </Typography>
@@ -632,35 +636,58 @@ const PrimaryWindow = () => {
             <Typography variant="h6" noWrap component="div">
               {data.questions[activeStep].instructions.title}
             </Typography>
-            <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto", paddingLeft: "10px" }}>
-              {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (
-                isMobile ? (
-                  <>
-                    <IconButton color="primary" onClick={() => setIsTruthTableOpen(true)}>
-                      <DatasetIcon />
-                    </IconButton>
-                  </>
-                ) : (
-                  <Button onClick={() => setIsTruthTableOpen(true)} variant="outlined">Assignment Truth Table</Button>
-                ))}
-              {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (
-                isMobile ? (
-                  <>
-                    <IconButton color="primary" onClick={() => checkAnswer()}>
-                      <CheckCircleIcon />
-                    </IconButton>
-                  </>
-                ) : (
-                  <Button onClick={() => checkAnswer()} variant="outlined">Check Answer</Button>
-                ))}
-              {isMobile ? (
-                <IconButton color="primary" onClick={() => setIsOpen(true)}>
-                  <GradingIcon />
-                </IconButton>
-              ) : (
-                <Button onClick={() => setIsOpen(true)} variant="outlined">View Instructions</Button>
-              )}
-            </Box>
+            <IconButton title="Options" sx={{ ml: "auto" }} onClick={() => setIsSettingsMenuOpen(true)}>
+              <SettingsApplicationsIcon color="primary" />
+            </IconButton>
+            <React.Fragment>
+              <Drawer
+                anchor={"right"}
+                open={isSettingsMenuOpen}
+                onClose={() => setIsSettingsMenuOpen(false)}
+                PaperProps={{
+                  sx: {
+                    background: theme.palette.background.paper
+                  }
+                }}
+              >
+                <List sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => setIsTruthTableOpen(true)}>
+                      <ListItemIcon>
+                        <DatasetIcon color="primary" />
+                      </ListItemIcon>
+                      <ListItemText secondary={"Your output vs. expected output"} primary={"Assignment Truth Table"} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => checkAnswer()}>
+                      <ListItemIcon>
+                        <CheckCircleIcon color="primary" />
+                      </ListItemIcon>
+                      <ListItemText secondary={"Run the autograder"} primary={"Check Answer"} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton onClick={() => setIsOpen(true)}>
+                      <ListItemIcon>
+                        <GradingIcon color="primary" />
+                      </ListItemIcon>
+                      <ListItemText secondary={"Review the task and resources."} primary={"Task Description"} />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding sx={{ display: "flex", justifyContent: "center", marginTop: "auto" }}>
+                    <ToggleButtonGroup exclusive={true} size="large" aria-label="Large sizes">
+                      <ToggleButton title="Default Colors" onClick={() => setSelectedColorMode("default")} selected={selectedColorMode === "default"} value="left" key="left">
+                        <InvertColorsIcon />
+                      </ToggleButton>,
+                      <ToggleButton title="Colorblind Mode" onClick={() => setSelectedColorMode("colorblind")} selected={selectedColorMode === "colorblind" } fullWidth value="right" key="right">
+                        <InvertColorsOffIcon />
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                  </ListItem>
+                </List>
+              </Drawer>
+            </React.Fragment>
           </Toolbar>
         </AppBar>
         <Box
@@ -740,7 +767,7 @@ const PrimaryWindow = () => {
                       sx={{
                         width: "80px",
                         height: "80px",
-                        border: `solid ${selected === gate.id ? `3px ${green["A400"]}` : `1px ${theme.palette.primary.main}`}`,
+                        border: `solid ${selected === gate.id ? `3px ${selectedColorMode === "colorblind" ? "blue" : green["A400"]}` : `1px ${theme.palette.primary.main}`}`,
                         borderRadius: "5px",
                         position: "absolute",
                         "&:hover": {
@@ -793,7 +820,7 @@ const PrimaryWindow = () => {
                                     "15px" : gate instanceof NotGate || gate instanceof OutputGate ?
                                       "28px" : gate instanceof SevenSegmentDisplay ?
                                         "-4px" : "0px",
-                                  background: input?.gate?.output ? "green" : "red",
+                                  background: input?.gate?.output ? (selectedColorMode === "colorblind" ? "blue" : "green") : "red",
                                 }}
                                 className="input-output">
                                 {input?.gate?.output ? "1" : "0"}
@@ -811,7 +838,7 @@ const PrimaryWindow = () => {
                                 targetAnchor: 'left',
                                 sourceAnchor: 'right',
                                 style: {
-                                  strokeColor: gate.output ? "#00ff00" : "#ff0000",
+                                  strokeColor: gate.output ? (selectedColorMode === "colorblind" ? "#0000ff" : "#00ff00") : "#ff0000",
                                   endMarker: false,
                                 }
                               }
@@ -824,7 +851,7 @@ const PrimaryWindow = () => {
                                   "30px" : gate instanceof NotGate || gate instanceof OutputGate ?
                                     "8px" : "-15px",
                                 left: "85px",
-                                background: gate.output ? "green" : "red",
+                                background: gate.output ? (selectedColorMode === "colorblind" ? "blue" : "green") : "red",
                               }}
                               className="input-output">
                               {gate.output ? "1" : "0"}
@@ -865,7 +892,7 @@ const PrimaryWindow = () => {
                             zIndex: "1000",
                             top: "80px",
                             left: "10px",
-                          }} size="medium" color={gate.output ? "success" : "error"} checked={gate.output} onClick={() => toggleInput(gate.id)} onTouchStart={() => toggleInput(gate.id)} />
+                          }} size="medium" color={gate.output ? (selectedColorMode === "colorblind" ? "info" : "success") : "error"} checked={gate.output} onClick={() => toggleInput(gate.id)} onTouchStart={() => toggleInput(gate.id)} />
                         )}
                     </Box>
                   </Draggable>
