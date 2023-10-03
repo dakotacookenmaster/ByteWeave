@@ -11,8 +11,8 @@ import ToggleOnIcon from '@mui/icons-material/ToggleOn';
 import ToggleOffIcon from '@mui/icons-material/ToggleOff';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 
-export default function RightClickContext(props: { inputLength: number, outputLength: number, id: number, output: boolean, type: GateType, anchorElement: HTMLElement | null, handleClose: any, beginLinking: React.MouseEventHandler<HTMLElement>, removeGate: React.MouseEventHandler<HTMLElement>, removeOutgoingConnections: React.MouseEventHandler<HTMLElement>, toggleInput: React.MouseEventHandler<HTMLElement> }) {
-    const { handleClose, id, inputLength, outputLength, beginLinking, type, anchorElement, removeGate, removeOutgoingConnections, toggleInput, output } = props
+export default function RightClickContext(props: { selectedColorMode: "colorblind" | "default", inputLength: number, outputLength: number, id: number, output: boolean, type: GateType, anchorElement: HTMLElement | null, handleClose: any, beginLinking: React.MouseEventHandler<HTMLElement>, removeGate: React.MouseEventHandler<HTMLElement>, removeOutgoingConnections: React.MouseEventHandler<HTMLElement>, toggleInput: React.MouseEventHandler<HTMLElement> }) {
+    const { handleClose, id, inputLength, selectedColorMode, outputLength, beginLinking, type, anchorElement, removeGate, removeOutgoingConnections, toggleInput, output } = props
 
     const open = Boolean(anchorElement)
     return (
@@ -32,7 +32,7 @@ export default function RightClickContext(props: { inputLength: number, outputLe
                         {type !== GateType.SEVEN_SEGMENT_DISPLAY && (
                             <MenuItem onClick={beginLinking}>
                                 <ListItemIcon>
-                                    <AddLinkIcon color="success" fontSize="small" />
+                                    <AddLinkIcon color={selectedColorMode === "colorblind" ? "info" : "success"} fontSize="small" />
                                 </ListItemIcon>
                                 <ListItemText>Connect</ListItemText>
                             </MenuItem>
@@ -40,7 +40,7 @@ export default function RightClickContext(props: { inputLength: number, outputLe
                         {type === GateType.INPUT && (
                             <MenuItem onClick={toggleInput}>
                                 <ListItemIcon>
-                                    {output ? <ToggleOffIcon color="error" fontSize="small" /> : <ToggleOnIcon color="success" fontSize="small" />}
+                                    {output ? <ToggleOffIcon color="error" fontSize="small" /> : <ToggleOnIcon color={selectedColorMode === "colorblind" ? "info" : "success"} fontSize="small" />}
                                 </ListItemIcon>
                                 <ListItemText>{output ? "Toggle Off" : "Toggle On"}</ListItemText>
                             </MenuItem>

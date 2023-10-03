@@ -199,7 +199,7 @@ const PrimaryWindow = () => {
     }
 
     // otherwise they made it!
-    enqueueSnackbar("You got it!", { variant: "success" })
+    enqueueSnackbar("You got it!", { style: selectedColorMode === "colorblind" ? { backgroundColor: "blue"} : {}, variant: "success" })
     setCanMove(true)
   }
 
@@ -589,11 +589,12 @@ const PrimaryWindow = () => {
       <BasicModal drawerWidth={drawerWidth} isOpen={isOpen} setIsOpen={setIsOpen} data={data.questions[activeStep].instructions} />
       {
         data.questions[activeStep].answer.inputs.length > 0 && data.questions[activeStep].answer.outputs.length > 0 && (
-          <TruthTableModal gates={gates.current} drawerWidth={drawerWidth} isOpen={isTruthTableOpen} setIsOpen={setIsTruthTableOpen} truthTableData={data.questions[activeStep].answer.truthTable} />
+          <TruthTableModal selectedColorMode={selectedColorMode} gates={gates.current} drawerWidth={drawerWidth} isOpen={isTruthTableOpen} setIsOpen={setIsTruthTableOpen} truthTableData={data.questions[activeStep].answer.truthTable} />
         )
       }
       <ConnectModal setShouldRerender={setShouldRerender} defaultPinNumber={defaultPinNumber} isOpen={viewConnectModal} setIsOpen={handleCloseConnectModal} receivingGate={gates.current.find(g => g.id === connections.to)} handleCompleteConnect={handleCompleteConnect} />
       {rightClickContextGate.id !== -1 && (<RightClickContext
+        selectedColorMode={selectedColorMode}
         inputLength={data.questions[activeStep].answer.inputs.length}
         outputLength={data.questions[activeStep].answer.outputs.length}
         id={rightClickContextGate.id}

@@ -9,8 +9,8 @@ import { enqueueSnackbar } from 'notistack';
 import { cloneDeep } from 'lodash';
 import React from 'react';
 
-export default function TruthTableModal(props: { gates: Gate[], drawerWidth: number, isOpen: boolean, setIsOpen: Function, truthTableData: number[][][] | string[][][] }) {
-    const { isOpen, setIsOpen, truthTableData, drawerWidth } = props
+export default function TruthTableModal(props: { selectedColorMode: "colorblind" | "default", gates: Gate[], drawerWidth: number, isOpen: boolean, setIsOpen: Function, truthTableData: number[][][] | string[][][] }) {
+    const { isOpen, setIsOpen, truthTableData, drawerWidth, selectedColorMode } = props
     const gates = cloneDeep(props.gates)
     const handleClose = () => setIsOpen(false);
     const theme = useTheme()
@@ -130,7 +130,7 @@ export default function TruthTableModal(props: { gates: Gate[], drawerWidth: num
                                                         return (
                                                             <React.Fragment key={`table-row-${rowIndex}-output-value-${i}`}>
                                                                 <TableCell sx={{ textAlign: "center", fontWeight: "bold" }}>{v}</TableCell>
-                                                                <TableCell sx={{ textAlign: "center", fontWeight: "bold", color: outputValue === v ? "green" : "red" }}>{outputValue}</TableCell>
+                                                                <TableCell sx={{ textAlign: "center", fontWeight: "bold", color: outputValue === v ? (selectedColorMode === "colorblind" ? "blue" : "green") : "red" }}>{outputValue}</TableCell>
                                                             </React.Fragment>
                                                         )
                                                     })
