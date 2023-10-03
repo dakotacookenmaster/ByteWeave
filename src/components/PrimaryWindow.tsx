@@ -632,7 +632,7 @@ const PrimaryWindow = () => {
             <Typography variant="h6" noWrap component="div">
               {data.questions[activeStep].instructions.title}
             </Typography>
-            <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
+            <Box sx={{ display: "flex", gap: "10px", marginLeft: "auto", paddingLeft: "10px" }}>
               {(data.questions[activeStep].answer.inputs.length !== 0 || data.questions[activeStep].answer.outputs.length !== 0) && (
                 isMobile ? (
                   <>
