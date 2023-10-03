@@ -651,22 +651,26 @@ const PrimaryWindow = () => {
                 }}
               >
                 <List sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => setIsTruthTableOpen(true)}>
-                      <ListItemIcon>
-                        <DatasetIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText secondary={"Your output vs. expected output"} primary={"Assignment Truth Table"} />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton onClick={() => checkAnswer()}>
-                      <ListItemIcon>
-                        <CheckCircleIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText secondary={"Run the autograder"} primary={"Check Answer"} />
-                    </ListItemButton>
-                  </ListItem>
+                  {data.questions[activeStep].answer.inputs.length ? (
+                    <>
+                      <ListItem disablePadding>
+                        <ListItemButton onClick={() => setIsTruthTableOpen(true)}>
+                          <ListItemIcon>
+                            <DatasetIcon color="primary" />
+                          </ListItemIcon>
+                          <ListItemText secondary={"Your output vs. expected output"} primary={"Assignment Truth Table"} />
+                        </ListItemButton>
+                      </ListItem>
+                      <ListItem disablePadding>
+                        <ListItemButton onClick={() => checkAnswer()}>
+                          <ListItemIcon>
+                            <CheckCircleIcon color="primary" />
+                          </ListItemIcon>
+                          <ListItemText secondary={"Run the autograder"} primary={"Check Answer"} />
+                        </ListItemButton>
+                      </ListItem>
+                    </>
+                  ) : (<></>)}
                   <ListItem disablePadding>
                     <ListItemButton onClick={() => setIsOpen(true)}>
                       <ListItemIcon>
@@ -680,7 +684,7 @@ const PrimaryWindow = () => {
                       <ToggleButton title="Default Colors" onClick={() => setSelectedColorMode("default")} selected={selectedColorMode === "default"} value="left" key="left">
                         <InvertColorsIcon />
                       </ToggleButton>,
-                      <ToggleButton title="Colorblind Mode" onClick={() => setSelectedColorMode("colorblind")} selected={selectedColorMode === "colorblind" } fullWidth value="right" key="right">
+                      <ToggleButton title="Colorblind Mode" onClick={() => setSelectedColorMode("colorblind")} selected={selectedColorMode === "colorblind"} fullWidth value="right" key="right">
                         <InvertColorsOffIcon />
                       </ToggleButton>
                     </ToggleButtonGroup>
