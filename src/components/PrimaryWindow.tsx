@@ -403,7 +403,6 @@ const PrimaryWindow = () => {
         if (gate.type === GateType.INPUT || gate.type === GateType.OUTPUT) {
           label.current = nextChar(label.current)
         }
-        enqueueSnackbar("Gate placed!", { variant: "success" })
       }
 
       boxRef.current!.style.cursor = "default"
